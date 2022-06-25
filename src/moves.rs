@@ -19,7 +19,7 @@ fn moves(p:Pos) -> Vec<Pos> {
             let mut b2 = b.clone();
             b2[i] = Square::Taken{by:t};
             let np = Pos{turn:o,board:b2};
-            cannon(np)
+            cannon(np);
             v.push(np);
         }
     }
