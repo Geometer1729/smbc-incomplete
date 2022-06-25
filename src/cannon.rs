@@ -4,7 +4,6 @@ mod types;
 pub mod cannon {
 
 use crate::types::types::*;
-use std::cmp::min;
 
 fn flip (b:Board) -> Board {
     return

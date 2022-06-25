@@ -12,10 +12,14 @@ pub enum Square {
     Taken{by : Player},
 }
 
+#[derive(Clone,Copy,PartialEq,Eq,PartialOrd,Ord,Hash)]
+pub struct Pos{
+    pub turn:Player,
+    pub board:Board,
+}
+
 pub type Board = [Square;9];
 
-#[derive(Clone,Copy,PartialEq,Eq,PartialOrd,Ord,Hash)]
-pub struct Pos{pub turn:Player,pub board:Board}
-
+pub type Eval = [bool;6];
 
 }
