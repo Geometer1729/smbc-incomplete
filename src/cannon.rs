@@ -22,7 +22,9 @@ fn syms(b : Board) -> Vec<Board> {
     for i in 0..4 {
         let b = rot(v[i]);
         v.push(b);
-        v.push(flip(b));
+    }
+    for i in 0..4 {
+        v.push(flip(v[i]));
     }
     v
 }

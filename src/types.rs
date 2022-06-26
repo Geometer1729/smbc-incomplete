@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 
 #[derive(Clone,Copy,PartialEq,Eq,PartialOrd,Ord,Hash,Debug)]
 pub enum Player {X,O}
@@ -40,4 +42,4 @@ pub enum Pref {
 pub type Board = [Square;9];
 pub type Eval = [bool;6];
 pub type Objective = [Outcome;3];
-pub type Table = hashbrown::HashMap<Pos, Eval>;
+pub type Table = Arc<dashmap::DashMap<Pos, Eval>>;

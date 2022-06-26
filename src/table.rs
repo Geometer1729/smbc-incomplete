@@ -2,10 +2,10 @@ use crate::eval::*;
 use crate::types::*;
 use crate::moves::*;
 use crate::cannon::*;
-
+use rayon::prelude::*;
 pub fn genTable() -> Table {
-    let mut all = Default::default();
-    evaluate(&mut all,start);
+    let all: Table = Default::default();
+    evaluate(all.clone(),start);
     all
 }
 
@@ -15,7 +15,7 @@ pub fn cannon_lookup(table:& Table,pos:Pos) -> Eval {
     *table.get(&cannon_pos).unwrap()
 }
 
-fn evaluate(all:&mut Table, p:Pos) -> Eval {
+fn evaluate(all:Table, p:Pos) -> Eval {
     let eval : Eval =
         match eval_pos(p) {
             Some(Player::X) =>
@@ -30,8 +30,9 @@ fn evaluate(all:&mut Table, p:Pos) -> Eval {
                         draw
                     } else {
                         combine(
-                            moves.iter().map(|new_position|{
-                                let lookup = all.get(new_position).cloned() ;
+                            moves.par_iter().map(|new_position|{
+                                let all = all.clone();
+                                let lookup = all.get(new_position).map(|x| *x);
                                 lookup.unwrap_or_else(||evaluate(all,*new_position))
                             }).collect()
                         )
