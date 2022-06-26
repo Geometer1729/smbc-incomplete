@@ -41,3 +41,25 @@ fn evaluate(all: Table, p: Pos) -> Eval {
     all.insert(p, eval);
     eval
 }
+
+pub fn check_table(table: &Table, p:Pos) {
+    let eval_lkp : Eval = *table.get(&cannon_pos(p)).unwrap();
+    let mut evals : Vec<Eval> = Vec::new();
+    for m in moves(p) {
+        match (*table).get(&cannon_pos(m)) {
+            Some(eval) => evals.push(*eval),
+            None => panic!("pos not in table:\n{}",m)
+        }
+    }
+    let eval_calc : Eval = match eval_pos(p) {
+        Some(Player::X) => x_won,
+        Some(Player::O) => o_won,
+        None => if evals.len() == 0 { draw } else {combine(evals.clone())}
+    };
+    println!("works:{}\neval lkp:{:?}\neval cacl:{:?}\nevals:{:?}"
+        ,eval_lkp == eval_calc
+        ,eval_lkp
+        ,eval_calc
+        ,evals
+        );
+}

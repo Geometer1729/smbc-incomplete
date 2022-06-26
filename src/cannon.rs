@@ -24,8 +24,15 @@ pub fn cannon(p: &mut Pos) {
     p.board = *syms(p.board).iter().min().unwrap();
 }
 
-pub fn cannon_vec(vec: &mut Vec<Pos>) -> Vec<Pos> {
-    let mut h: Vec<Pos> = Vec::with_capacity(vec.len());
+pub fn cannon_pos(p : Pos) -> Pos {
+    Pos
+    {turn:p.turn
+    ,board:*syms(p.board).iter().min().unwrap()
+    }
+}
+
+pub fn cannon_vec (vec: &mut Vec<Pos>) -> Vec<Pos> {
+    let mut h : Vec<Pos> = Vec::with_capacity(vec.len());
     for pos in vec {
         cannon(pos);
         h.push(*pos);
