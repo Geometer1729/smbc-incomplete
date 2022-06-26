@@ -1,10 +1,5 @@
-pub mod types {
-
 #[derive(Clone,Copy,PartialEq,Eq,PartialOrd,Ord,Hash,Debug)]
-pub enum Player {
-    X,
-    O,
-}
+pub enum Player {X,O}
 
 #[derive(Clone,Copy,PartialEq,Eq,PartialOrd,Ord,Hash,Debug)]
 pub enum Square {
@@ -22,4 +17,5 @@ pub type Board = [Square;9];
 
 pub type Eval = [bool;6];
 
-}
+pub struct EvalShowable(pub Eval);
+

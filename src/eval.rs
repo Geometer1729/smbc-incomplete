@@ -1,6 +1,4 @@
-pub mod eval {
-
-use crate::types::types::*;
+use crate::types::{*,Square::*,Player::*};
 
 // Eval meaning:
 // possible to force win for x
@@ -18,20 +16,20 @@ pub fn combine (opts:Vec<Eval>) -> Eval {
     for i in 3..6 {
         eval[i]=opts.iter().any(|ent|!ent[i-3]);
     }
-    return eval;
+    eval
 
 }
 
 pub fn eval_pos(p:Pos) -> Option<Player> {
     let b = p.board;
-    // TODO sorta repeditive
-    if win_sets.iter().any(|ws| ws.iter().all(|&s| b[s] == Square::Taken{by:Player::X})) {
-        return Some(Player::X);
+    if win_sets.iter().any(|ws| ws.iter().all(|&s| b[s] == Taken{by:X})) {
+        Some(X)
+    } else
+    if win_sets.iter().any(|ws| ws.iter().all(|&s| b[s] == Taken{by:O})) {
+        Some(O)
+    } else {
+        None
     }
-    if win_sets.iter().any(|ws| ws.iter().all(|&s| b[s] == Square::Taken{by:Player::O})) {
-        return Some(Player::O);
-    }
-    return None;
 }
 
 const win_sets : [[usize;3];8]
@@ -59,4 +57,3 @@ pub const o_won :Eval
     = [false,false,true
       ,true ,true ,false
       ];
-}

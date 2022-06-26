@@ -1,6 +1,4 @@
-pub mod cannon {
-
-use crate::types::types::*;
+use crate::types::*;
 
 fn flip (b:Board) -> Board {
     return
@@ -21,24 +19,14 @@ fn rot(b:Board) -> Board {
 
 fn syms(b : Board) -> Vec<Board> {
     let mut v:Vec<Board> = vec![b];
-    for i in 0..4 { // hopefully this means 0..3
+    for i in 0..4 {
         v.push(rot(v[i]));
     }
-    for i in 0..4 { // hopefully this means 0..3
-        v.push(flip(v[i]));
-    }
-    return v;
-}
-
-fn board_cannon (b:Board) -> Board {
-    match syms(b).iter().min() {
-        Some(m) => {return *m;}
-        None => {println!("syms was empty?");return b;}
-    }
+    let v2 : Vec<Board> =v.iter().map(|&b|flip(b)).collect();
+    v.extend(v2);
+    v
 }
 
 pub fn cannon (p: &mut Pos) {
-    p.board = board_cannon(p.board);
-}
-
+    p.board = *syms(p.board).iter().min().unwrap();
 }

@@ -1,26 +1,25 @@
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
 
-#[path = "types.rs"]
-mod types;
-#[path = "cannon.rs"]
 mod cannon;
-#[path = "moves.rs"]
-mod moves;
-#[path = "eval.rs"]
 mod eval;
+mod format;
+mod moves;
+mod table;
+mod types;
 
-use crate::moves::moves::*;
+use crate::moves::*;
+use crate::table::*;
+use crate::types::EvalShowable;
 
 fn main() {
     let t = genTable();
-    println!("{}",t.len());
-    println!("{:?}",t.get(&start));
+    //println!("{}",t.len());
+    println!("{}",EvalShowable(*t.get(&start).unwrap()));
     let ms = moves(start);
-    for m in ms {
-        println!("{:?},{:?}",m,t.get(&m));
+    for (i,m) in ms.iter().enumerate() {
+        println!("{}:\n{}\n{}",i,m,EvalShowable(*t.get(&m).unwrap()));
     }
-
 }
 
 
