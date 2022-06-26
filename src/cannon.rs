@@ -1,6 +1,3 @@
-#[path = "types.rs"]
-mod types;
-
 pub mod cannon {
 
 use crate::types::types::*;
@@ -33,7 +30,7 @@ fn syms(b : Board) -> Vec<Board> {
     return v;
 }
 
-pub fn board_cannon (b:Board) -> Board {
+fn board_cannon (b:Board) -> Board {
     match syms(b).iter().min() {
         Some(m) => {return *m;}
         None => {println!("syms was empty?");return b;}

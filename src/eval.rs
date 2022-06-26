@@ -1,6 +1,3 @@
-#[path = "types.rs"]
-mod types;
-
 pub mod eval {
 
 use crate::types::types::*;

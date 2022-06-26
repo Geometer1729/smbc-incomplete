@@ -1,7 +1,5 @@
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
-//#[allow(non_upper_case_globals)]
-//#[allow(non_upper_case_globals)]
 
 #[path = "types.rs"]
 mod types;
@@ -9,6 +7,8 @@ mod types;
 mod cannon;
 #[path = "moves.rs"]
 mod moves;
+#[path = "eval.rs"]
+mod eval;
 
 use crate::moves::moves::*;
 //use std::collections::HashMap;

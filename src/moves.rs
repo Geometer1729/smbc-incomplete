@@ -1,18 +1,11 @@
-#[path = "types.rs"]
-mod types;
-
-#[path = "cannon.rs"]
-mod cannon;
-
-#[path = "eval.rs"]
-mod eval;
-
 pub mod moves{
 
-// why on earth do I need a moves here?
-use crate::moves::eval::eval::*;
-use crate::types::types::*;
+//use crate::moves::eval::eval::*;
+
 use crate::cannon::cannon::*;
+use crate::eval::eval::*;
+use crate::types::types::*;
+
 use std::collections::HashMap;
 
 pub fn moves(p:Pos) -> Vec<Pos> {
