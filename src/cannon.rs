@@ -37,7 +37,7 @@ fn board_cannon (b:Board) -> Board {
     }
 }
 
-pub fn cannon (mut p:Pos) {
+pub fn cannon (p: &mut Pos) {
     p.board = board_cannon(p.board);
 }
 

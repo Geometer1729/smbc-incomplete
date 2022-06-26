@@ -11,7 +11,6 @@ mod moves;
 mod eval;
 
 use crate::moves::moves::*;
-//use std::collections::HashMap;
 
 fn main() {
     let t = genTable();

@@ -17,8 +17,8 @@ pub fn moves(p:Pos) -> Vec<Pos> {
             let o = other(t);
             let mut b2 = b.clone();
             b2[i] = Square::Taken{by:t};
-            let np = Pos{turn:o,board:b2};
-            cannon(np);
+            let mut np = Pos{turn:o,board:b2};
+            cannon(&mut np);
             if ! v.contains(&np) {
                 v.push(np);
             }
@@ -52,18 +52,21 @@ fn evaluate(all:&mut HashMap<Pos,Eval>, p:Pos) -> Eval {
     let eval : [bool;6];
 
     match eval_pos(p) {
-        Some(Player::X) => { eval = x_won; }
-        Some(Player::O) => { eval = o_won; }
-        None => {
-            if ms.len() == 0 {
-                eval = draw;
-            } else {
-                for np in ms {
-                    evals.push(evaluate(all,np));
+        Some(Player::X) =>
+            { eval = x_won; }
+        Some(Player::O) =>
+            { eval = o_won; }
+        None =>
+            {
+                if ms.len() == 0 {
+                    eval = draw;
+                } else {
+                    for np in ms {
+                        evals.push(evaluate(all,np));
+                    }
+                    eval = combine(evals);
                 }
-                eval = combine(evals);
             }
-        }
     }
     all.insert(p,eval);
     return eval;
