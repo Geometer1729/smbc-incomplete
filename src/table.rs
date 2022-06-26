@@ -3,22 +3,20 @@ use crate::types::*;
 use crate::moves::*;
 use crate::cannon::*;
 
-use std::collections::HashMap;
-
-
-pub fn genTable() -> HashMap<Pos,Eval> {
-    let mut all = HashMap::new();
+pub type Table = hashbrown::HashMap<Pos, Eval>;
+pub fn genTable() -> Table {
+    let mut all = Default::default();
     evaluate(&mut all,start);
     all
 }
 
-pub fn cannon_lookup(table:& HashMap<Pos,Eval>,pos:Pos) -> Eval {
+pub fn cannon_lookup(table:& Table,pos:Pos) -> Eval {
     let mut cannon_pos = pos.clone();
     cannon(&mut cannon_pos);
     *table.get(&cannon_pos).unwrap()
 }
 
-fn evaluate(all:&mut HashMap<Pos,Eval>, p:Pos) -> Eval {
+fn evaluate(all:&mut Table, p:Pos) -> Eval {
     let eval : Eval =
         match eval_pos(p) {
             Some(Player::X) =>
@@ -34,7 +32,7 @@ fn evaluate(all:&mut HashMap<Pos,Eval>, p:Pos) -> Eval {
                     } else {
                         combine(
                             moves.iter().map(|new_position|{
-                                let lookup = all.get(new_position).map(|&x|x) ;
+                                let lookup = all.get(new_position).cloned() ;
                                 lookup.unwrap_or_else(||evaluate(all,*new_position))
                             }).collect()
                         )
