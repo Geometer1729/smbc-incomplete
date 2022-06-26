@@ -6,20 +6,20 @@ pub mod eval {
 use crate::types::types::*;
 
 // Eval meaning:
-// can force win for x
-// can force win for o
-// can force draw
-// can stop win for x
-// can stop win for o
-// can stop draw
+// possible to force win for x
+// possible to force win for o
+// possible to force draw
+// possible to prevent win for x
+// possible to prevent win for o
+// possible to prevent draw
 
 pub fn combine (opts:Vec<Eval>) -> Eval {
     let mut eval=[false;6];
     for i in 0..3 {
-        eval[i]=!opts.iter().all(|ent|ent[i+3]);
+        eval[i]=opts.iter().any(|ent|!ent[i+3]);
     }
     for i in 3..6 {
-        eval[i]=!opts.iter().all(|ent|ent[i-3]);
+        eval[i]=opts.iter().any(|ent|!ent[i-3]);
     }
     return eval;
 

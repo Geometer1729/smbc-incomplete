@@ -15,7 +15,7 @@ use crate::types::types::*;
 use crate::cannon::cannon::*;
 use std::collections::HashMap;
 
-fn moves(p:Pos) -> Vec<Pos> {
+pub fn moves(p:Pos) -> Vec<Pos> {
     let mut v : Vec<Pos> = Vec::new();
     for i in 0..9 {
         if p.board[i] == Square::Open {
@@ -26,13 +26,15 @@ fn moves(p:Pos) -> Vec<Pos> {
             b2[i] = Square::Taken{by:t};
             let np = Pos{turn:o,board:b2};
             cannon(np);
-            v.push(np);
+            if ! v.contains(&np) {
+                v.push(np);
+            }
         }
     }
     return v;
 }
 
-const start : Pos = Pos
+pub const start : Pos = Pos
     {turn:Player::X
     ,board: [Square::Open;9]
     };
@@ -40,8 +42,8 @@ const start : Pos = Pos
 fn other(s:Player) -> Player {
     match s {
         // so much boiler plate I want to cry
-        X => {return Player::O;}
-        O => {return Player::X;}
+        Player::X => {return Player::O;}
+        Player::O => {return Player::X;}
     }
 }
 
@@ -54,7 +56,7 @@ pub fn genTable() -> HashMap<Pos,Eval> {
 fn evaluate(all:&mut HashMap<Pos,Eval>, p:Pos) -> Eval {
     let mut evals = Vec::new();
     let ms = moves(p);
-    let mut eval : [bool;6] = [false;6];
+    let eval : [bool;6];
 
     match eval_pos(p) {
         Some(Player::X) => { eval = x_won; }
@@ -66,7 +68,7 @@ fn evaluate(all:&mut HashMap<Pos,Eval>, p:Pos) -> Eval {
                 for np in ms {
                     evals.push(evaluate(all,np));
                 }
-                let eval = combine(evals);
+                eval = combine(evals);
             }
         }
     }

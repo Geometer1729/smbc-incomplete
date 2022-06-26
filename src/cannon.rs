@@ -22,20 +22,6 @@ fn rot(b:Board) -> Board {
 
 }
 
-fn swap2(mut b : Board,i:usize,j:usize) {
-    let t = b[i];
-    b[i] = b[j];
-    b[j]=t;
-}
-
-fn swap4(mut b : Board,i1:usize,i2:usize,i3:usize,i4:usize) -> () {
-    let t = b[i1];
-    b[i1] = b[i2];
-    b[i2] = b[i3];
-    b[i3] = b[i4];
-    b[i4] = t;
-}
-
 fn syms(b : Board) -> Vec<Board> {
     let mut v:Vec<Board> = vec![b];
     for i in 0..4 { // hopefully this means 0..3
@@ -47,12 +33,15 @@ fn syms(b : Board) -> Vec<Board> {
     return v;
 }
 
-pub fn borad_cannon (mut b:Board) {
-    let b = b.iter().min();
+pub fn board_cannon (b:Board) -> Board {
+    match syms(b).iter().min() {
+        Some(m) => {return *m;}
+        None => {println!("syms was empty?");return b;}
+    }
 }
 
 pub fn cannon (mut p:Pos) {
-    borad_cannon(p.board);
+    p.board = board_cannon(p.board);
 }
 
 }
