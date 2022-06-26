@@ -19,3 +19,8 @@ pub type Eval = [bool;6];
 
 pub struct EvalShowable(pub Eval);
 
+pub struct CharGrid{
+    pub height : usize,
+    pub width : usize,
+    pub strs : Vec<String>
+}

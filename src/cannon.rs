@@ -1,4 +1,5 @@
 use crate::types::*;
+use std::collections::HashSet;
 
 fn flip (b:Board) -> Board {
     return
@@ -29,4 +30,13 @@ fn syms(b : Board) -> Vec<Board> {
 
 pub fn cannon (p: &mut Pos) {
     p.board = *syms(p.board).iter().min().unwrap();
+}
+
+pub fn cannon_vec (vec: &mut Vec<Pos>) -> Vec<Pos> {
+    let mut h : HashSet<Pos> = HashSet::with_capacity(9);
+    for pos in vec {
+        cannon(pos);
+        h.insert(*pos);
+    }
+    h.into_iter().collect()
 }

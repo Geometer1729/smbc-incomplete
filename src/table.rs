@@ -1,6 +1,7 @@
 use crate::eval::*;
 use crate::types::*;
 use crate::moves::*;
+use crate::cannon::*;
 
 use std::collections::HashMap;
 
@@ -9,6 +10,12 @@ pub fn genTable() -> HashMap<Pos,Eval> {
     let mut all = HashMap::new();
     evaluate(&mut all,start);
     all
+}
+
+pub fn cannon_lookup(table:& HashMap<Pos,Eval>,pos:Pos) -> Eval {
+    let mut cannon_pos = pos.clone();
+    cannon(&mut cannon_pos);
+    *table.get(&cannon_pos).unwrap()
 }
 
 fn evaluate(all:&mut HashMap<Pos,Eval>, p:Pos) -> Eval {
@@ -20,7 +27,8 @@ fn evaluate(all:&mut HashMap<Pos,Eval>, p:Pos) -> Eval {
                 { o_won }
             None =>
                 {
-                    let moves = moves(p);
+                    let mut raw_moves = moves(p);
+                    let moves = cannon_vec(&mut raw_moves);
                     if moves.len() == 0 {
                         draw
                     } else {
