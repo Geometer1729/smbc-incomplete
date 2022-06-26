@@ -3,7 +3,6 @@ use crate::types::*;
 use crate::moves::*;
 use crate::cannon::*;
 
-pub type Table = hashbrown::HashMap<Pos, Eval>;
 pub fn genTable() -> Table {
     let mut all = Default::default();
     evaluate(&mut all,start);
