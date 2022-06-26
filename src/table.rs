@@ -6,19 +6,19 @@ use crate::cannon::*;
 use std::collections::HashMap;
 
 
-pub fn genTable() -> HashMap<Pos,Eval> {
+pub fn genTable() -> Table {
     let mut all = HashMap::new();
     evaluate(&mut all,start);
     all
 }
 
-pub fn cannon_lookup(table:& HashMap<Pos,Eval>,pos:Pos) -> Eval {
+pub fn cannon_lookup(table:& Table,pos:Pos) -> Eval {
     let mut cannon_pos = pos.clone();
     cannon(&mut cannon_pos);
     *table.get(&cannon_pos).unwrap()
 }
 
-fn evaluate(all:&mut HashMap<Pos,Eval>, p:Pos) -> Eval {
+fn evaluate(all:&mut Table, p:Pos) -> Eval {
     let eval : Eval =
         match eval_pos(p) {
             Some(Player::X) =>

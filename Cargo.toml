@@ -2,8 +2,7 @@
 name = "smbc-incomplete"
 version = "0.1.0"
 edition = "2021"
-inclued = [
-	"src/eval.rs",
+include = [
 	"src/*",
 ]
 
