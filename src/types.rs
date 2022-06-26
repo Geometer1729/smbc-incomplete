@@ -10,10 +10,11 @@ pub enum Square {
 }
 
 #[derive(Clone,Copy,PartialEq,Eq,PartialOrd,Ord,Hash,Debug)]
-pub enum Objective {
+pub enum Outcome {
     Draw,
     Win{with:Player}
 }
+
 
 #[derive(Clone,Copy,PartialEq,Eq,PartialOrd,Ord,Hash,Debug)]
 pub struct Pos{
@@ -33,10 +34,11 @@ pub struct CharGrid{
 #[derive(Clone,Copy,PartialEq,Eq,PartialOrd,Ord,Hash,Debug)]
 pub enum Pref {
     Winable,
-    HalfWinable,
+    Drawable,
     Lost
 }
 
 pub type Board = [Square;9];
 pub type Eval = [bool;6];
 pub type Table = HashMap<Pos,Eval>;
+pub type Objective = [Outcome;3];

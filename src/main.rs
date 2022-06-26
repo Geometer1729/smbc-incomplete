@@ -15,7 +15,10 @@ use crate::table::*;
 use crate::types::*;
 use crate::format::*;
 use crate::eval::*;
+
 use crate::types::EvalShowable;
+use crate::types::Outcome::*;
+use crate::types::Player::*;
 
 use std::collections::HashMap;
 use std::io::*;
@@ -46,7 +49,7 @@ fn explore(table:HashMap<Pos,Eval>,pos:Pos) {
             ms[index]
             }
         Player::O =>{
-            simple(&table,Objective::Draw,pos)
+            simple(&table,[Win{with:O},Win{with:X},Draw],pos)
         }
     };
 
