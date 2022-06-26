@@ -17,15 +17,14 @@ pub fn combine (opts:Vec<Eval>) -> Eval {
         eval[i]=opts.iter().any(|ent|!ent[i-3]);
     }
     eval
-
 }
 
 pub fn eval_pos(p:Pos) -> Option<Player> {
     let b = p.board;
-    if win_sets.iter().any(|ws| ws.iter().all(|&s| b[s] == Taken{by:X})) {
+    if win_sets.iter().any(|ws|ws.iter().all(|&s|b[s]==Taken{by:X})) {
         Some(X)
     } else
-    if win_sets.iter().any(|ws| ws.iter().all(|&s| b[s] == Taken{by:O})) {
+    if win_sets.iter().any(|ws|ws.iter().all(|&s|b[s]==Taken{by:O})) {
         Some(O)
     } else {
         None

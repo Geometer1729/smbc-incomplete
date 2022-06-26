@@ -34,13 +34,13 @@ fn main() {
 
         while runs < 5000 {
             let st = Instant::now();
-        
+
             std::hint::black_box(genTable());
 
             let dur = Instant::now().duration_since(st);
             total_duration += dur;
             runs += 1;
-            if dur < min { 
+            if dur < min {
                 min = dur;
             }
             if dur > max {
@@ -52,13 +52,13 @@ fn main() {
         return;
     }
     let table = genTable();
-    //println!("{}",table.len());
+    check_table(&table,start);
     explore(table,start);
 }
 
 fn explore(table:Table,pos:Pos) {
     println!("{}",pos);
-    println!("{}",EvalShowable(*table.get(&start).unwrap()));
+    println!("{}",EvalShowable(cannon_lookup(&table,pos)));
     let ms : Vec<Pos>  = moves(pos);
     let mut display_moves : Vec<String> = Vec::new();
 
@@ -82,9 +82,20 @@ fn explore(table:Table,pos:Pos) {
 
     println!("====================");
     if moves(next).len() == 0 || eval_pos(next).is_some() {
-        println!("Game ended");
+        let res =
+            if moves(next).len() == 0 {
+                "Draw"
+            } else {
+                match eval_pos(next) {
+                    Some(X) => "X won",
+                    Some(O) => "Y won",
+                    None => panic!("game wasn't really over?")
+                }
+            };
+        println!("Game ended : {}",res);
         return;
     }
+    check_table(&table,next);
     explore(table,next);
 }
 
