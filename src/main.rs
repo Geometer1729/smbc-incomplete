@@ -46,10 +46,10 @@ fn explore(table:Table,pos:Pos) {
     println!("====================");
     if moves(next).len() == 0 || eval_pos(next).is_some() {
         let res =
-            match eval_pos(next) {
-                Some(X) => "X won",
-                Some(O) => "O won",
-                None => "Draw"
+            match eval_pos(next).unwrap() {
+                Win{with:X} => "X won",
+                Win{with:O} => "O won",
+                Draw => "Draw"
             };
         println!("Game ended : {}",res);
         return;

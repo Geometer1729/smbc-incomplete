@@ -1,4 +1,4 @@
-use crate::types::{Player::*, Square::*, *};
+use crate::types::{Outcome::*,Player::*, Square::*,*};
 
 // Eval meaning:
 // possible to force win for x
@@ -19,18 +19,20 @@ pub fn combine(opts: Vec<Eval>) -> Eval {
     eval
 }
 
-pub fn eval_pos(p: Pos) -> Option<Player> {
+pub fn eval_pos(p: Pos) -> Option<Outcome> {
     let b = p.board;
     if WIN_SETS
         .iter()
         .any(|ws| ws.iter().all(|&s| b[s] == Taken { by: X }))
     {
-        Some(X)
+        Some(Win{with:X})
     } else if WIN_SETS
         .iter()
         .any(|ws| ws.iter().all(|&s| b[s] == Taken { by: O }))
     {
-        Some(O)
+        Some(Win{with:O})
+    } else if p.board.iter().all(|&x|x != Open) {
+        Some(Draw)
     } else {
         None
     }
