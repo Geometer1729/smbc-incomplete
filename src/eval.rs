@@ -21,12 +21,12 @@ pub fn combine(opts: Vec<Eval>) -> Eval {
 
 pub fn eval_pos(p: Pos) -> Option<Player> {
     let b = p.board;
-    if win_sets
+    if WIN_SETS
         .iter()
         .any(|ws| ws.iter().all(|&s| b[s] == Taken { by: X }))
     {
         Some(X)
-    } else if win_sets
+    } else if WIN_SETS
         .iter()
         .any(|ws| ws.iter().all(|&s| b[s] == Taken { by: O }))
     {
@@ -36,7 +36,7 @@ pub fn eval_pos(p: Pos) -> Option<Player> {
     }
 }
 
-const win_sets: [[usize; 3]; 8] = [
+const WIN_SETS: [[usize; 3]; 8] = [
     [0, 1, 2],
     [3, 4, 5],
     [6, 7, 8],
@@ -47,8 +47,8 @@ const win_sets: [[usize; 3]; 8] = [
     [2, 4, 6],
 ];
 
-pub const x_won: Eval = [[true, false, false],[false, true, true]];
+pub const X_WON: Eval = [[true, false, false],[false, true, true]];
 
-pub const draw: Eval = [[false, true, false],[true, false, true]];
+pub const DRAW: Eval = [[false, true, false],[true, false, true]];
 
-pub const o_won: Eval = [[false, false, true],[true, true, false]];
+pub const O_WON: Eval = [[false, false, true],[true, true, false]];

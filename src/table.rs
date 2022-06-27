@@ -3,9 +3,9 @@ use crate::eval::*;
 use crate::moves::*;
 use crate::types::*;
 use rayon::prelude::*;
-pub fn genTable() -> Table {
+pub fn gen_table() -> Table {
     let all: Table = Default::default();
-    evaluate(all.clone(), start);
+    evaluate(all.clone(), START);
     all
 }
 
@@ -17,13 +17,13 @@ pub fn cannon_lookup(table: &Table, pos: Pos) -> Eval {
 
 fn evaluate(all: Table, p: Pos) -> Eval {
     let eval: Eval = match eval_pos(p) {
-        Some(Player::X) => x_won,
-        Some(Player::O) => o_won,
+        Some(Player::X) => X_WON,
+        Some(Player::O) => O_WON,
         None => {
             let mut raw_moves = moves(p);
             let moves = cannon_vec(&mut raw_moves);
             if moves.len() == 0 {
-                draw
+                DRAW
             } else {
                 combine(
                     moves
@@ -52,9 +52,9 @@ pub fn check_table(table: &Table, p:Pos) {
         }
     }
     let eval_calc : Eval = match eval_pos(p) {
-        Some(Player::X) => x_won,
-        Some(Player::O) => o_won,
-        None => if evals.len() == 0 { draw } else {combine(evals.clone())}
+        Some(Player::X) => X_WON,
+        Some(Player::O) => O_WON,
+        None => if evals.len() == 0 { DRAW } else {combine(evals.clone())}
     };
     println!("works:{}\neval lkp:{}\neval cacl:{}\nevals:"
         ,eval_lkp == eval_calc

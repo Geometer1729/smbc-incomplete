@@ -8,12 +8,12 @@ use smbc_incomplete::*;
 use std::io::*;
 
 fn main() {
-    let table = genTable();
+    let table = gen_table();
     println!("{}",Pref::Winable > Pref::Drawable);
     println!("{}",Pref::Drawable > Pref::Lost);
     println!("{}",Pref::Winable > Pref::Lost);
-    check_table(&table,start);
-    explore(table,start);
+    //check_table(&table,start);
+    explore(table,START);
 }
 
 fn explore(table:Table,pos:Pos) {
@@ -48,12 +48,12 @@ fn explore(table:Table,pos:Pos) {
         let res =
             match eval_pos(next) {
                 Some(X) => "X won",
-                Some(O) => "Y won",
+                Some(O) => "O won",
                 None => "Draw"
             };
         println!("Game ended : {}",res);
         return;
     }
-    check_table(&table,next);
+    //check_table(&table,next);
     explore(table,next);
 }

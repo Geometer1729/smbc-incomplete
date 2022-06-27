@@ -19,7 +19,7 @@ pub fn moves(p: Pos) -> Vec<Pos> {
     moves
 }
 
-pub const start: Pos = Pos {
+pub const START: Pos = Pos {
     turn: X,
     board: [Open; 9],
 };

@@ -17,7 +17,7 @@ pub fn simple(table: &Table, obj: Objective, pos: Pos) -> Pos {
     m
 }
 
-fn toInd(obj: Outcome) -> usize {
+fn to_ind(obj: Outcome) -> usize {
     match obj {
         Win { with: X } => 0,
         Draw => 1,
@@ -26,9 +26,9 @@ fn toInd(obj: Outcome) -> usize {
 }
 
 fn pref(obj: Objective, eval: Eval) -> Pref {
-    let w = toInd(obj[0]);
-    let _d = toInd(obj[1]);
-    let l = toInd(obj[2]);
+    let w = to_ind(obj[0]);
+    let _d = to_ind(obj[1]);
+    let l = to_ind(obj[2]);
     if !eval[1][w] {
         Winable
     } else if eval[0][l] {
