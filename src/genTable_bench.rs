@@ -1,3 +1,6 @@
+#![allow(non_snake_case)]
+#![allow(non_upper_case_globals)]
+
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 pub fn bench(c: &mut Criterion) {

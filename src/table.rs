@@ -56,10 +56,12 @@ pub fn check_table(table: &Table, p:Pos) {
         Some(Player::O) => o_won,
         None => if evals.len() == 0 { draw } else {combine(evals.clone())}
     };
-    println!("works:{}\neval lkp:{:?}\neval cacl:{:?}\nevals:{:?}"
+    println!("works:{}\neval lkp:{}\neval cacl:{}\nevals:"
         ,eval_lkp == eval_calc
-        ,eval_lkp
-        ,eval_calc
-        ,evals
+        ,EvalShowable(eval_lkp)
+        ,EvalShowable(eval_calc)
         );
+    for e in evals {
+        println!("{}",EvalShowable(e));
+    }
 }

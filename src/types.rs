@@ -34,12 +34,12 @@ pub struct CharGrid {
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub enum Pref {
-    Winable,
-    Drawable,
     Lost,
+    Drawable,
+    Winable,
 }
 
 pub type Board = [Square; 9];
-pub type Eval = [bool; 6];
+pub type Eval = [[bool; 3];2];
 pub type Objective = [Outcome; 3];
 pub type Table = Arc<dashmap::DashMap<Pos, Eval>>;

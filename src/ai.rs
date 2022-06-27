@@ -8,16 +8,13 @@ use crate::types::*;
 use std::iter::*;
 
 pub fn simple(table: &Table, obj: Objective, pos: Pos) -> Pos {
-    let ms = moves(pos);
-    let evals = ms.iter().map(|&p| cannon_lookup(&table, p));
-    let mut labeled = zip(ms.clone(), evals);
-    match labeled.find(|(_, eval)| pref(obj, *eval) == Winable) {
-        Some((m, _)) => m,
-        None => match labeled.find(|(_, eval)| pref(obj, *eval) == Drawable) {
-            Some((m, _)) => m,
-            None => ms[0].clone(),
-        },
-    }
+    let m = *moves(pos).iter()
+        .max_by_key(
+            |&m|pref(obj,cannon_lookup(table,*m))
+        ).unwrap();
+    println!("Move selected:\n{}",m);
+    println!("Eval of:{:?}",pref(obj,cannon_lookup(table,m)));
+    m
 }
 
 fn toInd(obj: Outcome) -> usize {
@@ -32,9 +29,9 @@ fn pref(obj: Objective, eval: Eval) -> Pref {
     let w = toInd(obj[0]);
     let _d = toInd(obj[1]);
     let l = toInd(obj[2]);
-    if !eval[3 + w] {
+    if !eval[1][w] {
         Winable
-    } else if eval[l] {
+    } else if eval[0][l] {
         Lost
     } else {
         Drawable

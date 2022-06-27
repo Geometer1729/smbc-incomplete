@@ -9,6 +9,9 @@ use std::io::*;
 
 fn main() {
     let table = genTable();
+    println!("{}",Pref::Winable > Pref::Drawable);
+    println!("{}",Pref::Drawable > Pref::Lost);
+    println!("{}",Pref::Winable > Pref::Lost);
     check_table(&table,start);
     explore(table,start);
 }
@@ -34,18 +37,19 @@ fn explore(table:Table,pos:Pos) {
         }
         Player::O => simple(&table, [Win { with: O }, Win { with: X }, Draw], pos),
     };
+    for (i,m) in moves(pos).iter().enumerate() {
+        if next == *m {
+            println!("choice was:{}",i)
+        }
+    }
 
     println!("====================");
     if moves(next).len() == 0 || eval_pos(next).is_some() {
         let res =
-            if moves(next).len() == 0 {
-                "Draw"
-            } else {
-                match eval_pos(next) {
-                    Some(X) => "X won",
-                    Some(O) => "Y won",
-                    None => panic!("game wasn't really over?")
-                }
+            match eval_pos(next) {
+                Some(X) => "X won",
+                Some(O) => "Y won",
+                None => "Draw"
             };
         println!("Game ended : {}",res);
         return;

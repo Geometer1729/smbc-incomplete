@@ -27,12 +27,12 @@ impl fmt::Display for EvalShowable {
         write!(
             f,
             "{}{}{}-{}{}{}",
-            if self.0[0] { 'X' } else { 'x' },
-            if self.0[1] { 'D' } else { 'd' },
-            if self.0[2] { 'O' } else { 'o' },
-            if self.0[3] { 'X' } else { 'x' },
-            if self.0[4] { 'D' } else { 'd' },
-            if self.0[5] { 'O' } else { 'o' }
+            if self.0[0][0] { 'X' } else { 'x' },
+            if self.0[0][1] { 'D' } else { 'd' },
+            if self.0[0][2] { 'O' } else { 'o' },
+            if self.0[1][0] { 'X' } else { 'x' },
+            if self.0[1][1] { 'D' } else { 'd' },
+            if self.0[1][2] { 'O' } else { 'o' },
         )
     }
 }

@@ -9,12 +9,12 @@ use crate::types::{Player::*, Square::*, *};
 // possible to prevent draw
 
 pub fn combine(opts: Vec<Eval>) -> Eval {
-    let mut eval = [false; 6];
+    let mut eval = [[false;3];2];
     for i in 0..3 {
-        eval[i] = opts.iter().any(|ent| !ent[i + 3]);
-    }
-    for i in 3..6 {
-        eval[i] = opts.iter().any(|ent| !ent[i - 3]);
+        // outcome can be forced if there's an option where it can't be prevented
+        eval[0][i] = opts.iter().any(|ent|!ent[1][i]);
+        // outcome can be prevented if there's an option where it can't be forced
+        eval[1][i] = opts.iter().any(|ent|!ent[0][i]);
     }
     eval
 }
@@ -47,8 +47,8 @@ const win_sets: [[usize; 3]; 8] = [
     [2, 4, 6],
 ];
 
-pub const x_won: Eval = [true, false, false, false, true, true];
+pub const x_won: Eval = [[true, false, false],[false, true, true]];
 
-pub const draw: Eval = [false, true, false, true, false, true];
+pub const draw: Eval = [[false, true, false],[true, false, true]];
 
-pub const o_won: Eval = [false, false, true, true, true, false];
+pub const o_won: Eval = [[false, false, true],[true, true, false]];
