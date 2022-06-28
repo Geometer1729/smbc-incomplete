@@ -1,0 +1,18 @@
+.glyph {
+	stroke-width: 0.1;
+	fill: none;
+}
+
+.x {
+	stroke: #700;
+}
+
+.o {
+	stroke: #007;
+}
+
+.space {
+	stroke-width: 0.05;
+	stroke: #000;
+	fill: #ca8;
+}
