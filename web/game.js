@@ -92,7 +92,7 @@ class Console {
 	}
 
 	log(msg) {
-		const tc = document.createTextNode(msg);
+		const tc = document.createTextNode(msg + "\n");
 		this.elem.appendChild(tc);
 	}
 }
