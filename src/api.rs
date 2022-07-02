@@ -30,9 +30,21 @@ impl API for Cnsl<'_> {
         }
         println!("{}", join_gridy(display_moves));
         let mut input = String::new();
-        stdin().read_line(&mut input).unwrap();
-        let index: usize = input.trim().parse().unwrap();
-        ms[index]
+        ask_range(ms,&mut input)
+    }
+}
+
+fn ask_range<A>(ms:Vec<A>,input : &mut String) -> A
+    where A : Copy,
+{
+    stdin().read_line(input).unwrap();
+    match input.trim().parse::<usize>() {
+        Ok(ind) if ind < ms.len() => ms[ind],
+        _ => {
+            println!("Index did not parse or was out of bounds");
+            input.clear();
+            ask_range(ms,input)
+        }
     }
 }
 
