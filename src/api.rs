@@ -7,19 +7,19 @@ use crate::types::{*,Player::*};
 use std::io::*;
 
 pub trait API {
-    fn rend(&self,p:Pos) -> ();
-    fn ask(&self,p:Pos) -> Pos;
+    fn rend(&mut self,p:Pos) -> ();
+    fn ask(&mut self,p:Pos) -> Pos;
 }
 
 pub struct Cnsl<'a>(pub &'a Table);
 
 impl API for Cnsl<'_> {
-    fn rend(&self,pos:Pos){
+    fn rend(&mut self,pos:Pos){
         let table = &self.0;
         println!("{}",pos);
         println!("{}",EvalShowable(cannon_lookup(&table,pos)));
     }
-    fn ask(&self,pos:Pos) -> Pos {
+    fn ask(&mut self,pos:Pos) -> Pos {
         let table = &self.0;
         let ms : Vec<Pos>  = moves(pos);
         let mut display_moves : Vec<String> = Vec::new();
@@ -48,7 +48,7 @@ fn ask_range<A>(ms:Vec<A>,input : &mut String) -> A
     }
 }
 
-pub fn host_game<X,O> (x:X, o:O, p: Pos) -> Outcome
+pub fn host_game<X,O> (x:&mut X,o:&mut O, p: Pos) -> Outcome
     where
         X: API,
         O: API,

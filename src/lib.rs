@@ -1,3 +1,5 @@
+#![feature(async_closure)]
+
 mod ai;
 mod api;
 mod cannon;
