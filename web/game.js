@@ -7,8 +7,18 @@ const SVG_DEFS = [
 
 const MARKS = ['empty', 'x', 'o'];
 
-class Board {
+class ClickEvent extends Event {
+	constructor(cause, realX, realY) {
+		super("click", {});
+		this.cause = cause;
+		const [x, y] = [realX, realY].map(Math.floor);
+		[this.realX, this.realY, this.x, this.y] = [realX, realY, x, y];
+	}
+}
+
+class Board extends EventTarget {
 	constructor(width, height) {
+		super();
 		const svg = document.createElementNS(SVG_NS, 'svg');
 		svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
 		svg.style.width = width + 'in';
@@ -72,22 +82,38 @@ class Board {
 
 	onClick(ev) {
 		let {x, y} = this.screenToBoard(ev.clientX, ev.clientY);
-		console.log("click @%f,%f -> %f,%f", ev.clientX, ev.clientY, x, y);
-		[x, y] = [x, y].map(Math.floor);
-		//let idx = MARKS.find(this.get(x, y));
-		const mark = this.get(x, y);
-		let idx = MARKS.indexOf(mark);
-		idx += 1;
-		if(idx >= MARKS.length) idx = 0;
-		this.set(x, y, MARKS[idx]);
+		this.dispatchEvent(new ClickEvent(ev, x, y));
 	}
 }
 
-let board;
+class Console {
+	constructor(elem) {
+		this.elem = elem;
+	}
+
+	log(msg) {
+		const tc = document.createTextNode(msg);
+		this.elem.appendChild(tc);
+	}
+}
+
+let board, con, ws;
+
+const sendByte = bt => {
+	const da = new Uint8Array(1);
+	da[0] = bt;
+	ws.send(da);
+};
 
 const init = () => {
+	con = new Con(document.querySelector("#msgs"));
 	board = new Board(3, 3);
-	document.body.appendChild(board.svg);
+	document.body.insertBefore(board.svg, document.body.firstChild);
+
+	ws = new WebSocket("ws://localhost:8080/");
+	ws.addEventListener("open", (ev) => con.log("Connection opened"));
+	ws.addEventListener("close", (ev) => con.log(`Connection closed, code ${ev.code}, reason ${ev.reason}`));
+	ws.addEventListener("message", (ev) => con.log(`Data: ${ev.data}`));
 };
 
 document.addEventListener("DOMContentLoaded", init);

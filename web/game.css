@@ -16,3 +16,8 @@
 	stroke: #000;
 	fill: #ca8;
 }
+
+#msgs {
+	font-family: monospace;
+	white-space: pre-wrap;
+}
