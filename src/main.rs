@@ -4,9 +4,6 @@ use smbc_incomplete::*;
 
 fn main() {
     let table = gen_table();
-    println!("{}",Pref::Winable > Pref::Drawable);
-    println!("{}",Pref::Drawable > Pref::Lost);
-    println!("{}",Pref::Winable > Pref::Lost);
     let x = Cnsl(&table);
     let o = SimpleAi
         {table:&table
