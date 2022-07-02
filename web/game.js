@@ -106,7 +106,7 @@ const sendByte = bt => {
 };
 
 const init = () => {
-	con = new Con(document.querySelector("#msgs"));
+	con = new Console(document.querySelector("#msgs"));
 	board = new Board(3, 3);
 	document.body.insertBefore(board.svg, document.body.firstChild);
 
