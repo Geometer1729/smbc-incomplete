@@ -15,7 +15,7 @@ fn main() {
         };
     runtime.block_on(async{
         let mut weeb = mkWebPlayer().await;
-        println!("{}",host_game(&mut cnsl,&mut weeb,START).await);
+        host_game(&mut cnsl,&mut weeb,START).await;
     });
 }
 

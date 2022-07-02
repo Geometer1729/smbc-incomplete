@@ -2,14 +2,10 @@ use crate::types::{*,Square::*};
 use crate::moves::other;
 use crate::api::API;
 
-use std::{env, io::Error};
-use std::iter::*;
-
-use futures_util::{future, StreamExt, TryStreamExt};
+use futures_util::{StreamExt};
 use tungstenite::protocol::Message;
 use tungstenite::protocol::Message::*;
 use tokio::net::{TcpListener, TcpStream};
-use tokio::runtime::Handle;
 use tokio_tungstenite::WebSocketStream;
 use tokio_tungstenite::accept_async;
 use futures_util::SinkExt;
@@ -35,7 +31,7 @@ impl API for WebPlayer {
 
     async fn ask(&mut self,p:Pos) -> Pos {
         match self.stream.next().await.expect("read failed").expect("read failed2") {
-            Ping(ping_vec) => { self.stream.send(Pong(ping_vec)).await ; self.ask(p).await },
+            Ping(ping_vec) => { self.stream.send(Pong(ping_vec)).await.expect("failed to send pong") ; self.ask(p).await },
             Binary(bytes)
                 if bytes.len() == 1
                     && bytes[0] < 9
@@ -47,6 +43,11 @@ impl API for WebPlayer {
                     },
             _ => self.ask(p).await
         }
+    }
+
+    async fn close(&mut self,o:Outcome) {
+        self.stream.send(Text(format!("{}",o))).await.expect("failed to send result");
+        self.stream.close(None).await.expect("close didn't work?");
     }
 }
 

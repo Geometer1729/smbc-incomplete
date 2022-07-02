@@ -10,8 +10,9 @@ use std::io::*;
 
 #[async_trait]
 pub trait API {
-    async fn rend(&mut self,p:Pos) -> ();
+    async fn rend(&mut self,_p:Pos) -> () {}
     async fn ask(&mut self,p:Pos) -> Pos;
+    async fn close(&mut self,o:Outcome) -> () {println!("Game over with: {}",o)}
 }
 
 pub struct Cnsl<'a>(pub &'a Table);
@@ -53,7 +54,7 @@ fn ask_range<A>(ms:Vec<A>,input : &mut String) -> A
 }
 
 #[async_recursion]
-pub async fn host_game<X,O> (x:&mut X,o:&mut O, p: Pos) -> Outcome
+pub async fn host_game<X,O> (x:&mut X,o:&mut O, p: Pos)
     where
         X: API + Send,
         O: API + Send,
@@ -70,7 +71,10 @@ pub async fn host_game<X,O> (x:&mut X,o:&mut O, p: Pos) -> Outcome
     }
     //eval_pos(new_pos).unwrap_or_else(async ||host_game(x,o,new_pos).await)
     match eval_pos(new_pos) {
-        Some(outcome) => outcome,
+        Some(outcome) => {
+            x.close(outcome).await;
+            o.close(outcome).await;
+        },
         None =>  host_game(x,o,new_pos).await
     }
 }

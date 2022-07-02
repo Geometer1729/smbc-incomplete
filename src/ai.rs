@@ -13,7 +13,6 @@ pub struct SimpleAi<'a> {pub table:&'a Table,pub obj:Objective}
 
 #[async_trait]
 impl API for SimpleAi<'_> {
-    async fn rend(&mut self,_:Pos) {}
     async fn ask(&mut self,pos:Pos) -> Pos {
         let m = *moves(pos).iter()
             .max_by_key(
