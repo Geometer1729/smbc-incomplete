@@ -1,0 +1,9 @@
+wlog say player 1 has preference xdo
+
+player 2 cases
+	xdo -> x 0
+	xod -> x 0
+	dxo -> ?
+	dox -> d -1
+	oxd -> x +1
+	odx -> d 0

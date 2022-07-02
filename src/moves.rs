@@ -24,7 +24,7 @@ pub const START: Pos = Pos {
     board: [Open; 9],
 };
 
-fn other(s: Player) -> Player {
+pub fn other(s: Player) -> Player {
     match s {
         X => O,
         O => X,

@@ -1,4 +1,5 @@
 mod ai;
+mod api;
 mod cannon;
 mod eval;
 mod format;
@@ -7,6 +8,7 @@ mod table;
 mod types;
 
 pub use crate::ai::*;
+pub use crate::api::*;
 pub use crate::eval::*;
 pub use crate::format::*;
 pub use crate::moves::*;

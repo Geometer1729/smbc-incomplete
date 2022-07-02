@@ -1,4 +1,4 @@
-use crate::types::{Player::*, Square::*, *};
+use crate::types::{Player::*, Square::*,Outcome::*, *};
 
 use std::cmp::*;
 use std::fmt;
@@ -9,6 +9,15 @@ impl fmt::Display for Player {
         match self {
             X => write!(f, "x"),
             O => write!(f, "o"),
+        }
+    }
+}
+
+impl fmt::Display for Outcome {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Draw => write!(f, "Draw"),
+            Win{with:p} => write!(f, "Win for {}",p),
         }
     }
 }

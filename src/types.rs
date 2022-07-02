@@ -43,3 +43,4 @@ pub type Board = [Square; 9];
 pub type Eval = [[bool; 3];2];
 pub type Objective = [Outcome; 3];
 pub type Table = Arc<dashmap::DashMap<Pos, Eval>>;
+

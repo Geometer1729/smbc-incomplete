@@ -4,18 +4,25 @@ use crate::types::Outcome::*;
 use crate::types::Player::*;
 use crate::types::Pref::*;
 use crate::types::*;
+use crate::api::API;
 
 use std::iter::*;
 
-pub fn simple(table: &Table, obj: Objective, pos: Pos) -> Pos {
-    let m = *moves(pos).iter()
-        .max_by_key(
-            |&m|pref(obj,cannon_lookup(table,*m))
-        ).unwrap();
-    println!("Move selected:\n{}",m);
-    println!("Eval of:{:?}",pref(obj,cannon_lookup(table,m)));
-    m
+pub struct SimpleAi<'a> {pub table:&'a Table,pub obj:Objective}
+
+impl API for SimpleAi<'_> {
+    fn rend(&self,_:Pos) {}
+    fn ask(&self,pos:Pos) -> Pos {
+        let m = *moves(pos).iter()
+            .max_by_key(
+                |&m|pref(self.obj,cannon_lookup(self.table,*m))
+            ).unwrap();
+        println!("Simple Ai selected:\n{}",m);
+        println!("Which has an eval of:{:?}",pref(self.obj,cannon_lookup(self.table,m)));
+        m
+    }
 }
+
 
 fn to_ind(obj: Outcome) -> usize {
     match obj {
