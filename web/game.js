@@ -84,6 +84,36 @@ class Board extends EventTarget {
 		let {x, y} = this.screenToBoard(ev.clientX, ev.clientY);
 		this.dispatchEvent(new ClickEvent(ev, x, y));
 	}
+
+	toIndex(x, y) {
+		return y * this.height + x;
+	}
+
+	fromIndex(i) {
+		const w = this.width;
+		return [i % w, Math.floor(i / w)];
+	}
+
+	render(pos) {
+		if(pos.width != this.width || pos.height != this.height) {
+			throw new Error(`Incompatible sizes: Board ${[this.width, this.height]} != Pos ${[pos.width, pos.height]}`);
+		}
+		const ixs = pos.indices;
+		for(let i = 0; i < ixs; i++) {
+			const [x, y] = this.fromIndex(i);
+			let mark = pos.state[i];
+			if(mark == " ") mark = "empty";
+			this.set(x, y, mark);
+		}
+	}
+
+	get width() {
+		return this.spots[0].length;
+	}
+
+	get height() {
+		return this.spots.length;
+	}
 }
 
 class Console {
@@ -94,6 +124,26 @@ class Console {
 	log(msg) {
 		const tc = document.createTextNode(msg + "\n");
 		this.elem.appendChild(tc);
+	}
+}
+
+class Pos {
+	constructor(turn, state, width, height) {
+		[this.turn, this.state, this.width, this.height] = [turn, state, width, height];
+	}
+
+	static fromString(s) {
+		if(s.length != 10) throw new Error("not a valid state string");
+		const turn = s[0];
+		const state = new Array(9);
+		for(let i = 0; i < 9; i++) {
+			state[i] = s[i + 1];
+		}
+		return new Pos(turn, state, 3, 3);
+	}
+
+	get indices() {
+		return this.state.length;
 	}
 }
 
@@ -111,9 +161,22 @@ const init = () => {
 	document.body.insertBefore(board.svg, document.body.firstChild);
 
 	ws = new WebSocket("ws://localhost:8080/");
-	ws.addEventListener("open", (ev) => con.log("Connection opened"));
-	ws.addEventListener("close", (ev) => con.log(`Connection closed, code ${ev.code}, reason ${ev.reason}`));
-	ws.addEventListener("message", (ev) => con.log(`Data: ${ev.data}`));
+	ws.addEventListener("open", ev => con.log("Connection opened"));
+	ws.addEventListener("close", ev => con.log(`Connection closed, code ${ev.code}, reason ${ev.reason}`));
+	ws.addEventListener("message", ev => {
+		con.log(`Data: ${ev.data}`);
+		try {
+			const pos = Pos.fromString(ev.data);
+			board.render(pos);
+		} catch(e) {
+			con.log('(Unexpected format)');
+			throw e;
+		}
+	});
+
+	board.addEventListener("click", ev => {
+		sendByte(board.toIndex(ev.x, ev.y));
+	});
 };
 
 document.addEventListener("DOMContentLoaded", init);
