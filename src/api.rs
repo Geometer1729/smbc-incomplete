@@ -72,6 +72,8 @@ pub async fn host_game<X,O> (x:&mut X,o:&mut O, p: Pos)
     //eval_pos(new_pos).unwrap_or_else(async ||host_game(x,o,new_pos).await)
     match eval_pos(new_pos) {
         Some(outcome) => {
+            x.rend(new_pos).await;
+            o.rend(new_pos).await;
             x.close(outcome).await;
             o.close(outcome).await;
         },
