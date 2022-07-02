@@ -5,14 +5,16 @@ use crate::types::Player::*;
 use crate::types::Pref::*;
 use crate::types::*;
 use crate::api::API;
+use async_trait::async_trait;
 
 use std::iter::*;
 
 pub struct SimpleAi<'a> {pub table:&'a Table,pub obj:Objective}
 
+#[async_trait]
 impl API for SimpleAi<'_> {
-    fn rend(&mut self,_:Pos) {}
-    fn ask(&mut self,pos:Pos) -> Pos {
+    async fn rend(&mut self,_:Pos) {}
+    async fn ask(&mut self,pos:Pos) -> Pos {
         let m = *moves(pos).iter()
             .max_by_key(
                 |&m|pref(self.obj,cannon_lookup(self.table,*m))

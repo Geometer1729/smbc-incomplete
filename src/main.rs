@@ -6,12 +6,16 @@ use tokio::runtime::Runtime;
 
 fn main() {
     let table = gen_table();
-    //let mut x = Cnsl(&table);
-    let mut x = Runtime::new().expect("hurr I can fail?").block_on(mkWebPlayer());
-    let mut o = SimpleAi
+    let runtime = Runtime::new().expect("hurr I can fail?");
+    let _rt_ent = runtime.enter();
+    let mut cnsl = Cnsl(&table);
+    let mut _ai = SimpleAi
         {table:&table
         ,obj:[Win { with: O }, Win { with: X }, Draw]
         };
-    println!("{}",host_game(&mut x,&mut o,START));
+    runtime.block_on(async{
+        let mut weeb = mkWebPlayer().await;
+        println!("{}",host_game(&mut cnsl,&mut weeb,START).await);
+    });
 }
 

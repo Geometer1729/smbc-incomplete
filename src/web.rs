@@ -13,6 +13,7 @@ use tokio::runtime::Handle;
 use tokio_tungstenite::WebSocketStream;
 use tokio_tungstenite::accept_async;
 use futures_util::SinkExt;
+use async_trait::async_trait;
 
 pub struct WebPlayer
     {pub stream : WebSocketStream<TcpStream>
@@ -26,29 +27,26 @@ pub async fn mkWebPlayer() -> WebPlayer {
     }
 }
 
+#[async_trait]
 impl API for WebPlayer {
-    fn rend(&mut self,p:Pos){
-        self.stream.send(marshal_pos(p));
+    async fn rend(&mut self,p:Pos){
+        self.stream.send(marshal_pos(p)).await.expect("hurr");
     }
 
-    fn ask(&mut self,p:Pos) -> Pos {
-        Handle::current().block_on(
-            async {
-                self.stream.send(marshal_pos(p));
-                match self.stream.next().await.expect("read failed").expect("read failed2") {
-                    Binary(bytes)
-                        if bytes.len() == 0
-                            && bytes[0] < 9
-                            && p.board[bytes[0] as usize] == Open
-                            =>
-                            { let mut new_board = p.board.clone();
-                              new_board[bytes[0] as usize]= Taken{by:p.turn};
-                              Pos{turn:other(p.turn),board:new_board}
-                            },
-                    _ => self.ask(p)
-                }
-            }
-        )
+    async fn ask(&mut self,p:Pos) -> Pos {
+        match self.stream.next().await.expect("read failed").expect("read failed2") {
+            Ping(ping_vec) => { self.stream.send(Pong(ping_vec)).await ; self.ask(p).await },
+            Binary(bytes)
+                if bytes.len() == 1
+                    && bytes[0] < 9
+                    && p.board[bytes[0] as usize] == Open
+                    =>
+                    { let mut new_board = p.board.clone();
+                      new_board[bytes[0] as usize]= Taken{by:p.turn};
+                      Pos{turn:other(p.turn),board:new_board}
+                    },
+            _ => self.ask(p).await
+        }
     }
 }
 

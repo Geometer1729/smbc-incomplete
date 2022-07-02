@@ -3,23 +3,27 @@ use crate::format::*;
 use crate::moves::*;
 use crate::table::*;
 use crate::types::{*,Player::*};
+use async_trait::async_trait;
+use async_recursion::async_recursion;
 
 use std::io::*;
 
+#[async_trait]
 pub trait API {
-    fn rend(&mut self,p:Pos) -> ();
-    fn ask(&mut self,p:Pos) -> Pos;
+    async fn rend(&mut self,p:Pos) -> ();
+    async fn ask(&mut self,p:Pos) -> Pos;
 }
 
 pub struct Cnsl<'a>(pub &'a Table);
 
+#[async_trait]
 impl API for Cnsl<'_> {
-    fn rend(&mut self,pos:Pos){
+    async fn rend(&mut self,pos:Pos){
         let table = &self.0;
         println!("{}",pos);
         println!("{}",EvalShowable(cannon_lookup(&table,pos)));
     }
-    fn ask(&mut self,pos:Pos) -> Pos {
+    async fn ask(&mut self,pos:Pos) -> Pos {
         let table = &self.0;
         let ms : Vec<Pos>  = moves(pos);
         let mut display_moves : Vec<String> = Vec::new();
@@ -48,23 +52,25 @@ fn ask_range<A>(ms:Vec<A>,input : &mut String) -> A
     }
 }
 
-pub fn host_game<X,O> (x:&mut X,o:&mut O, p: Pos) -> Outcome
+#[async_recursion]
+pub async fn host_game<X,O> (x:&mut X,o:&mut O, p: Pos) -> Outcome
     where
-        X: API,
-        O: API,
+        X: API + Send,
+        O: API + Send,
 {
-    x.rend(p);
-    o.rend(p);
+    x.rend(p).await;
+    o.rend(p).await;
     let new_pos =
         match p.turn {
-            X => x.ask(p),
-            O => o.ask(p)
+            X => x.ask(p).await,
+            O => o.ask(p).await
         };
     if !moves(p).iter().any(|&m|m==new_pos) {
         panic!("illegal move encountered");
     }
+    //eval_pos(new_pos).unwrap_or_else(async ||host_game(x,o,new_pos).await)
     match eval_pos(new_pos) {
         Some(outcome) => outcome,
-        None =>  host_game(x,o,new_pos)
+        None =>  host_game(x,o,new_pos).await
     }
 }
