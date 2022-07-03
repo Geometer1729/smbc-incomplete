@@ -1,0 +1,7 @@
+lobby system
+	make room
+	join room
+	request ai to current room
+	play again/revive room
+	exit
+
