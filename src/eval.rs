@@ -1,4 +1,4 @@
-use crate::types::{Outcome::*,Player::*, Square::*,*};
+use crate::types::{Outcome::*, Player::*, Square::*, *};
 
 // Eval meaning:
 // possible to force win for x
@@ -9,12 +9,12 @@ use crate::types::{Outcome::*,Player::*, Square::*,*};
 // possible to prevent draw
 
 pub fn combine(opts: Vec<Eval>) -> Eval {
-    let mut eval = [[false;3];2];
+    let mut eval = [[false; 3]; 2];
     for i in 0..3 {
         // outcome can be forced if there's an option where it can't be prevented
-        eval[0][i] = opts.iter().any(|ent|!ent[1][i]);
+        eval[0][i] = opts.iter().any(|ent| !ent[1][i]);
         // outcome can be prevented if there's an option where it can't be forced
-        eval[1][i] = opts.iter().any(|ent|!ent[0][i]);
+        eval[1][i] = opts.iter().any(|ent| !ent[0][i]);
     }
     eval
 }
@@ -25,13 +25,13 @@ pub fn eval_pos(p: Pos) -> Option<Outcome> {
         .iter()
         .any(|ws| ws.iter().all(|&s| b[s] == Taken { by: X }))
     {
-        Some(Win{with:X})
+        Some(Win { with: X })
     } else if WIN_SETS
         .iter()
         .any(|ws| ws.iter().all(|&s| b[s] == Taken { by: O }))
     {
-        Some(Win{with:O})
-    } else if p.board.iter().all(|&x|x != Open) {
+        Some(Win { with: O })
+    } else if p.board.iter().all(|&x| x != Open) {
         Some(Draw)
     } else {
         None
@@ -49,8 +49,8 @@ const WIN_SETS: [[usize; 3]; 8] = [
     [2, 4, 6],
 ];
 
-pub const X_WON: Eval = [[true, false, false],[false, true, true]];
+pub const X_WON: Eval = [[true, false, false], [false, true, true]];
 
-pub const DRAW: Eval = [[false, true, false],[true, false, true]];
+pub const DRAW: Eval = [[false, true, false], [true, false, true]];
 
-pub const O_WON: Eval = [[false, false, true],[true, true, false]];
+pub const O_WON: Eval = [[false, false, true], [true, true, false]];

@@ -1,4 +1,4 @@
-use crate::types::{Player::*, Square::*,Outcome::*, *};
+use crate::types::{Outcome::*, Player::*, Square::*, *};
 
 use std::cmp::*;
 use std::fmt;
@@ -17,7 +17,7 @@ impl fmt::Display for Outcome {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Draw => write!(f, "Draw"),
-            Win{with:p} => write!(f, "Win for {}",p),
+            Win { with: p } => write!(f, "Win for {}", p),
         }
     }
 }
@@ -67,7 +67,13 @@ impl fmt::Display for Pos {
 
 impl fmt::Display for CharGrid {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.to_string())
+        for (i, line) in self.strs.iter().enumerate() {
+            if i > 0 {
+                writeln!(f)?;
+            }
+            write!(f, "{}", line)?;
+        }
+        Ok(())
     }
 }
 

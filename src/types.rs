@@ -40,18 +40,18 @@ pub enum Pref {
 }
 
 pub type Board = [Square; 9];
-pub type Eval = [[bool; 3];2];
+pub type Eval = [[bool; 3]; 2];
 pub type Objective = [Outcome; 3];
 pub type Table = Arc<dashmap::DashMap<Pos, Eval>>;
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
-pub enum OutMsg{
+pub enum OutMsg {
     Upd(Pos),
     ReqPong(Vec<u8>),
 }
 
-#[derive(Clone,  PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
-pub enum InMsg{
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+pub enum InMsg {
     MoveAt(usize),
-    Reset ,
+    Reset,
 }

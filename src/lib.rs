@@ -1,5 +1,6 @@
 mod ai;
 mod api;
+pub mod bayesian;
 mod cannon;
 mod eval;
 mod format;
@@ -10,6 +11,7 @@ mod web;
 
 pub use crate::ai::*;
 pub use crate::api::*;
+pub use crate::bayesian::*;
 pub use crate::eval::*;
 pub use crate::format::*;
 pub use crate::moves::*;

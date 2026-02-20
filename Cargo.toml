@@ -15,6 +15,7 @@ tungstenite = "0.17"
 tokio-tungstenite = "0.17"
 tokio = { version = "1", features = ["full"] }
 futures-util = { version = "0.3", default-features = false, features = ["sink", "std"] }
+rand = "0.8"
 
 [dev-dependencies]
 criterion = "0.3"
