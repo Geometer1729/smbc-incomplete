@@ -2,7 +2,6 @@ use crate::types::{*,Square::*,InMsg::*,OutMsg::*};
 use crate::moves::other;
 use crate::api::API;
 
-use async_trait::async_trait;
 use futures_util::SinkExt;
 use futures_util::{StreamExt};
 use tokio::net::{TcpListener, TcpStream};
@@ -64,7 +63,6 @@ async fn handle_web_out(mut rec:Receiver<OutMsg>,mut ws: SplitSink<WS,Message>) 
 
 }
 
-#[async_trait]
 impl API for WebPlayer {
     async fn rend(&mut self,p:Pos){
         self.out_handle.send(Upd(p)).await.expect("ahh")
@@ -72,14 +70,16 @@ impl API for WebPlayer {
     }
 
     async fn ask(&mut self,p:Pos) -> Pos {
-        match self.in_handle.recv().await.expect("ahhh") {
-            MoveAt(ind) if p.board[ind] == Open
-              => { let mut new_board = p.board.clone();
-                   new_board[ind]= Taken{by:p.turn};
-                   Pos{turn:other(p.turn),board:new_board}
-                 },
-            MoveAt(_) => self.ask(p).await,
-            Reset => todo!("implement reset"),
+        loop {
+            match self.in_handle.recv().await.expect("ahhh") {
+                MoveAt(ind) if p.board[ind] == Open
+                  => { let mut new_board = p.board.clone();
+                       new_board[ind]= Taken{by:p.turn};
+                       return Pos{turn:other(p.turn),board:new_board}
+                     },
+                MoveAt(_) => continue,
+                Reset => todo!("implement reset"),
+            }
         }
     }
 

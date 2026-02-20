@@ -9,17 +9,15 @@ include = [
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-dashmap = "*"
-rayon = "*"
-tungstenite = "*"
-tokio-tungstenite = "*"
-tokio = { version = "*", features = ["full"] }
+dashmap = "5"
+rayon = "1"
+tungstenite = "0.17"
+tokio-tungstenite = "0.17"
+tokio = { version = "1", features = ["full"] }
 futures-util = { version = "0.3", default-features = false, features = ["sink", "std"] }
-async-trait = "*"
-async-recursion = "*"
 
 [dev-dependencies]
-criterion = "*"
+criterion = "0.3"
 
 [[bench]]
 name = "genTable_bench"

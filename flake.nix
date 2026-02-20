@@ -20,7 +20,7 @@
             inherit system;
             overlays = [ rust-overlay.overlays.default ];
           };
-          rustToolchain = pkgs.rust-bin.nightly.latest.default;
+          rustToolchain = pkgs.rust-bin.stable.latest.default;
           craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchain;
           src = craneLib.cleanCargoSource ./.;
           commonArgs = {
@@ -43,8 +43,8 @@
             inherit system;
             overlays = [ rust-overlay.overlays.default ];
           };
-          rustToolchain = pkgs.rust-bin.nightly.latest.default.override {
-            extensions = [ "rust-src" "rust-analyzer" ];
+          rustToolchain = pkgs.rust-bin.stable.latest.default.override {
+            extensions = [ "rust-src" "rust-analyzer" "rustfmt" "clippy" ];
           };
         in
         {
