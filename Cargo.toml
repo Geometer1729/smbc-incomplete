@@ -13,7 +13,7 @@ dashmap = "*"
 rayon = "*"
 tungstenite = "*"
 tokio-tungstenite = "*"
-tokio = { features = ["full"] }
+tokio = { version = "*", features = ["full"] }
 futures-util = { version = "0.3", default-features = false, features = ["sink", "std"] }
 async-trait = "*"
 async-recursion = "*"

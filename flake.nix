@@ -1,0 +1,58 @@
+{
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    crane.url = "github:ipetkov/crane";
+  };
+
+  outputs = { self, nixpkgs, rust-overlay, crane }:
+    let
+      systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
+      forAllSystems = nixpkgs.lib.genAttrs systems;
+    in
+    {
+      packages = forAllSystems (system:
+        let
+          pkgs = import nixpkgs {
+            inherit system;
+            overlays = [ rust-overlay.overlays.default ];
+          };
+          rustToolchain = pkgs.rust-bin.nightly.latest.default;
+          craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchain;
+          src = craneLib.cleanCargoSource ./.;
+          commonArgs = {
+            inherit src;
+            pname = "smbc-incomplete";
+            version = "0.1.0";
+            strictDeps = true;
+          };
+          cargoArtifacts = craneLib.buildDepsOnly commonArgs;
+        in
+        {
+          default = craneLib.buildPackage (commonArgs // {
+            inherit cargoArtifacts;
+          });
+        });
+
+      devShells = forAllSystems (system:
+        let
+          pkgs = import nixpkgs {
+            inherit system;
+            overlays = [ rust-overlay.overlays.default ];
+          };
+          rustToolchain = pkgs.rust-bin.nightly.latest.default.override {
+            extensions = [ "rust-src" "rust-analyzer" ];
+          };
+        in
+        {
+          default = pkgs.mkShell {
+            buildInputs = [
+              rustToolchain
+            ];
+          };
+        });
+    };
+}
