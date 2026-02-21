@@ -2,11 +2,56 @@
 <html>
 	<head>
 		<meta charset="utf8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1"/>
+		<title>Incomplete — The SMBC Game</title>
 		<link rel="stylesheet" type="text/css" href="game.css"/>
 		<script type="text/javascript" src="game.js"></script>
 	</head>
 	<body>
-		<div id="scoreboard"></div>
-		<!-- board goes here -->
+		<div id="container">
+			<header>
+				<h1>Incomplete</h1>
+				<p class="subtitle">A game of hidden motives, from <a href="https://www.smbc-comics.com/comic/incomplete" target="_blank">SMBC</a></p>
+			</header>
+
+			<details id="rules">
+				<summary>How to play</summary>
+				<div class="rules-content">
+					<p>
+						<strong>Incomplete</strong> is Tic-Tac-Toe with a twist:
+						you don't necessarily <em>want</em> to win.
+					</p>
+					<p>
+						Each game, you and the AI are secretly assigned a
+						<strong>preference ordering</strong> over the three possible
+						outcomes &mdash; <strong>X wins</strong>,
+						<strong>Draw</strong>, and <strong>O wins</strong>.
+						Your ordering is shown to you; the AI's is hidden.
+					</p>
+					<p>
+						For example, your objective might be
+						<span class="example-obj">Draw &gt; O wins &gt; X wins</span>
+						&mdash; meaning a draw is your <em>best</em> outcome,
+						the other player winning is <em>middle</em>, and you actually
+						winning is your <em>worst</em> outcome.
+					</p>
+					<p>
+						You play as <strong>X</strong> and always go first.
+						The AI plays using a Nash equilibrium strategy, so
+						good luck reading its intentions.
+					</p>
+				</div>
+			</details>
+
+			<div id="game-area">
+				<div id="objective"></div>
+				<div id="board-wrap">
+					<!-- board SVG inserted here by JS -->
+				</div>
+				<div id="results"></div>
+			</div>
+
+			<div id="scoreboard"></div>
+		</div>
 	</body>
 </html>

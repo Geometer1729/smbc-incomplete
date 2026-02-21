@@ -162,12 +162,11 @@ const updateScoreboard = () => {
 
 const init = () => {
 	board = new Board(3, 3);
-	document.body.insertBefore(board.svg, document.body.firstChild);
+	document.getElementById("board-wrap").appendChild(board.svg);
 
 	ws = new WebSocket(`ws://${location.host}/`);
 	ws.addEventListener("close", ev => {
-		const el = document.getElementById("objective");
-		if(el) el.textContent = "Connection lost. Restart the server and refresh.";
+		document.getElementById("objective").textContent = "Connection lost. Restart the server and refresh.";
 	});
 	ws.addEventListener("message", ev => {
 		const data = ev.data;
@@ -175,8 +174,7 @@ const init = () => {
 			const obj = data.substring(4);
 			gameOver = false;
 			// Clear previous results
-			const results = document.getElementById("results");
-			if(results) results.remove();
+			document.getElementById("results").innerHTML = "";
 			// Reset board to empty
 			for(let y = 0; y < board.height; y++) {
 				for(let x = 0; x < board.width; x++) {
@@ -184,15 +182,7 @@ const init = () => {
 				}
 			}
 			// Set objective
-			const div = document.getElementById("objective");
-			if(div) {
-				div.textContent = "Your objective (X): " + obj;
-			} else {
-				const el = document.createElement("div");
-				el.id = "objective";
-				el.textContent = "Your objective (X): " + obj;
-				document.body.insertBefore(el, document.body.firstChild);
-			}
+			document.getElementById("objective").textContent = "Your objective (X): " + obj;
 			return;
 		}
 		if(data.startsWith("END:")) {
@@ -204,12 +194,7 @@ const init = () => {
 			aiScore[aiScoreLabel.toLowerCase()]++;
 			updateScoreboard();
 			// Show results
-			let existing = document.getElementById("results");
-			if(!existing) {
-				existing = document.createElement("div");
-				existing.id = "results";
-				document.body.insertBefore(existing, board.svg.nextSibling);
-			}
+			const existing = document.getElementById("results");
 			gameOver = true;
 			existing.innerHTML =
 				`<div class="result-outcome">Result: ${outcome}</div>` +
