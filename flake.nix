@@ -55,6 +55,7 @@
           default = pkgs.mkShell {
             buildInputs = [
               rustToolchain
+              pkgs.cargo-watch
             ];
           };
         });

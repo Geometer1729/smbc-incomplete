@@ -15,9 +15,130 @@ use tokio_tungstenite::WebSocketStream;
 use tungstenite::protocol::Message;
 use tungstenite::protocol::Message::*;
 
+#[cfg(not(debug_assertions))]
 const INDEX_HTML: &str = include_str!("../web/game.html");
+#[cfg(not(debug_assertions))]
 const GAME_JS: &str = include_str!("../web/game.js");
+#[cfg(not(debug_assertions))]
 const GAME_CSS: &str = include_str!("../web/game.css");
+
+fn load_web_file(path: &str) -> String {
+    #[cfg(debug_assertions)]
+    {
+        std::fs::read_to_string(path).unwrap_or_else(|e| {
+            eprintln!("Failed to read {}: {}", path, e);
+            format!("<!-- Error loading {} -->", path)
+        })
+    }
+    #[cfg(not(debug_assertions))]
+    {
+        match path {
+            "web/game.html" => INDEX_HTML.to_string(),
+            "web/game.js" => GAME_JS.to_string(),
+            "web/game.css" => GAME_CSS.to_string(),
+            _ => String::from("Not Found"),
+        }
+    }
+}
+
+#[cfg(debug_assertions)]
+mod livereload {
+    use std::sync::atomic::{AtomicU64, Ordering};
+    use std::time::{Duration, SystemTime};
+    use tokio::io::AsyncWriteExt;
+    use tokio::net::TcpStream;
+
+    static GENERATION: AtomicU64 = AtomicU64::new(0);
+
+    pub fn current_generation() -> u64 {
+        GENERATION.load(Ordering::Relaxed)
+    }
+
+    pub async fn watch_files() {
+        let mut last_mtime = get_max_mtime();
+        let mut interval = tokio::time::interval(Duration::from_millis(500));
+        loop {
+            interval.tick().await;
+            let mtime = get_max_mtime();
+            if mtime > last_mtime {
+                last_mtime = mtime;
+                let gen = GENERATION.fetch_add(1, Ordering::Relaxed) + 1;
+                eprintln!("[livereload] web/ changed, generation {}", gen);
+            }
+        }
+    }
+
+    fn get_max_mtime() -> SystemTime {
+        let mut max = SystemTime::UNIX_EPOCH;
+        if let Ok(entries) = std::fs::read_dir("web") {
+            for entry in entries.flatten() {
+                if let Ok(meta) = entry.metadata() {
+                    if let Ok(mtime) = meta.modified() {
+                        if mtime > max {
+                            max = mtime;
+                        }
+                    }
+                }
+            }
+        }
+        max
+    }
+
+    pub fn inject_livereload(html: String) -> String {
+        let gen = current_generation();
+        let script = format!(
+            r#"<script>
+(function() {{
+    let gen = {};
+    function poll() {{
+        fetch('/__livereload?gen=' + gen)
+            .then(r => r.text())
+            .then(t => {{
+                gen = parseInt(t) || gen + 1;
+                location.reload();
+            }})
+            .catch(() => setTimeout(poll, 1000));
+    }}
+    poll();
+}})();
+</script>"#,
+            gen
+        );
+        html.replace("</body>", &format!("{}\n</body>", script))
+    }
+
+    pub async fn handle(mut stream: TcpStream, query: &str) {
+        let client_gen: u64 = query
+            .split('&')
+            .find_map(|param| {
+                let (key, val) = param.split_once('=')?;
+                if key == "gen" {
+                    val.parse().ok()
+                } else {
+                    None
+                }
+            })
+            .unwrap_or(0);
+
+        // Wait up to 30s for generation to change
+        let deadline = tokio::time::Instant::now() + Duration::from_secs(30);
+        let mut interval = tokio::time::interval(Duration::from_millis(100));
+        loop {
+            interval.tick().await;
+            let current = current_generation();
+            if current != client_gen || tokio::time::Instant::now() >= deadline {
+                let body = current.to_string();
+                let header = format!(
+                    "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+                    body.len()
+                );
+                let _ = stream.write_all(header.as_bytes()).await;
+                let _ = stream.write_all(body.as_bytes()).await;
+                return;
+            }
+        }
+    }
+}
 
 pub struct WebPlayer {
     in_handle: Receiver<InMsg>,
@@ -26,6 +147,11 @@ pub struct WebPlayer {
 
 /// Bind the WebSocket listener. Returns the TcpListener for use in an accept loop.
 pub async fn bind_listener(addr: &str) -> TcpListener {
+    #[cfg(debug_assertions)]
+    {
+        eprintln!("[livereload] watching web/ for changes");
+        spawn(livereload::watch_files());
+    }
     TcpListener::bind(addr).await.expect("Failed to bind")
 }
 
@@ -55,18 +181,36 @@ async fn serve_http(mut stream: TcpStream, peeked: &str) {
     let mut buf = vec![0u8; 4096];
     let _ = stream.read(&mut buf).await;
 
-    let path = peeked
+    let raw_path = peeked
         .lines()
         .next()
         .and_then(|line| line.split_whitespace().nth(1))
         .unwrap_or("/");
 
+    let path = raw_path.split('?').next().unwrap_or(raw_path);
+
+    #[cfg(debug_assertions)]
+    if path == "/__livereload" {
+        let query = raw_path.split_once('?').map(|(_, q)| q).unwrap_or("");
+        livereload::handle(stream, query).await;
+        return;
+    }
+
     let (content_type, body) = match path {
-        "/" | "/index.html" | "/game.html" => ("text/html; charset=utf-8", INDEX_HTML),
-        "/game.js" => ("application/javascript; charset=utf-8", GAME_JS),
-        "/game.css" => ("text/css; charset=utf-8", GAME_CSS),
+        "/" | "/index.html" | "/game.html" => {
+            let html = load_web_file("web/game.html");
+            #[cfg(debug_assertions)]
+            let html = livereload::inject_livereload(html);
+            ("text/html; charset=utf-8", html)
+        }
+        "/game.js" => (
+            "application/javascript; charset=utf-8",
+            load_web_file("web/game.js"),
+        ),
+        "/game.css" => ("text/css; charset=utf-8", load_web_file("web/game.css")),
         _ => {
-            let resp = "HTTP/1.1 404 Not Found\r\nContent-Length: 9\r\nConnection: close\r\n\r\nNot Found";
+            let resp =
+                "HTTP/1.1 404 Not Found\r\nContent-Length: 9\r\nConnection: close\r\n\r\nNot Found";
             let _ = stream.write_all(resp.as_bytes()).await;
             return;
         }
