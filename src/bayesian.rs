@@ -52,7 +52,7 @@ pub fn utility_values(obj: &Objective) -> [f64; 3] {
 }
 
 /// Return the utility for a specific outcome given an objective.
-fn outcome_utility(obj: &Objective, outcome: Outcome) -> f64 {
+pub fn outcome_utility(obj: &Objective, outcome: Outcome) -> f64 {
     let vals = utility_values(obj);
     vals[outcome_to_index(outcome)]
 }
