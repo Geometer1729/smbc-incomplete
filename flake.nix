@@ -22,7 +22,11 @@
           };
           rustToolchain = pkgs.rust-bin.stable.latest.default;
           craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchain;
-          src = craneLib.cleanCargoSource ./.;
+          src = pkgs.lib.cleanSourceWith {
+            src = ./.;
+            filter = path: type:
+              (craneLib.filterCargoSources path type) || (pkgs.lib.hasInfix "/web/" path);
+          };
           commonArgs = {
             inherit src;
             pname = "smbc-incomplete";
