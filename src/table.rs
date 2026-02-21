@@ -19,6 +19,12 @@ pub fn cannon_lookup(table: &Table, pos: Pos) -> Eval {
     *table.get(&cannon_pos).unwrap()
 }
 
+pub fn cannon_lookup_safe(table: &Table, pos: Pos) -> Option<Eval> {
+    let mut cannon_pos = pos;
+    cannon(&mut cannon_pos);
+    table.get(&cannon_pos).map(|e| *e)
+}
+
 fn evaluate(all: Table, p: Pos) -> Eval {
     let eval: Eval = match eval_pos(p) {
         Some(Win { with: X }) => X_WON,

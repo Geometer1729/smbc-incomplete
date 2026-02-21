@@ -105,6 +105,43 @@ class Board extends EventTarget {
 			if(mark == " ") mark = "empty";
 			this.set(x, y, mark);
 		}
+		this.clearCheat();
+	}
+
+	clearCheat() {
+		for(let y = 0; y < this.height; y++) {
+			for(let x = 0; x < this.width; x++) {
+				const spot = this.spot(x, y);
+				if(!spot) continue;
+				const space = spot.querySelector('.space');
+				space.removeAttribute('data-cheat');
+				const old = spot.querySelector('.cheat-pct');
+				if(old) old.remove();
+			}
+		}
+	}
+
+	applyCheat(cheatData) {
+		for(let i = 0; i < 9; i++) {
+			const [x, y] = this.fromIndex(i);
+			const spot = this.spot(x, y);
+			if(!spot) continue;
+			const d = cheatData[i];
+			const space = spot.querySelector('.space');
+			if(d.pref === '-') {
+				space.removeAttribute('data-cheat');
+				continue;
+			}
+			space.setAttribute('data-cheat', d.pref);
+			if(d.prob > 0.005) {
+				const txt = document.createElementNS(SVG_NS, 'text');
+				txt.setAttribute('class', 'cheat-pct');
+				txt.setAttribute('x', '0.5');
+				txt.setAttribute('y', '0.5');
+				txt.textContent = Math.round(d.prob * 100) + '%';
+				spot.appendChild(txt);
+			}
+		}
 	}
 
 	get width() {
@@ -200,6 +237,15 @@ const init = () => {
 			}
 			// Set objective
 			document.getElementById("objective").textContent = "Your objective (X): " + obj;
+			return;
+		}
+		if(data.startsWith("CHEAT:")) {
+			const parts = data.substring(6).split("|");
+			const cheatData = parts.map(p => {
+				const [pref, prob] = p.split(",");
+				return { pref, prob: parseFloat(prob) || 0 };
+			});
+			board.applyCheat(cheatData);
 			return;
 		}
 		if(data.startsWith("END:")) {

@@ -36,7 +36,19 @@ fn score_label(obj: &Objective, outcome: Outcome) -> &'static str {
 
 #[tokio::main]
 async fn main() {
-    let _table = gen_table();
+    // Suppress "connection closed" panic messages from WebSocket disconnects
+    let default_hook = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |info| {
+        let is_disconnect = info
+            .payload()
+            .downcast_ref::<&str>()
+            .is_some_and(|&msg| msg == "connection closed");
+        if !is_disconnect {
+            default_hook(info);
+        }
+    }));
+
+    let table = gen_table();
 
     // Build DAG and solve Nash equilibrium via CFR
     let prior = [1.0 / 6.0; bayesian::NUM_TYPES];
@@ -73,6 +85,7 @@ async fn main() {
     loop {
         let (stream, peer) = listener.accept().await.expect("Failed to accept");
         let strategy = strategy.clone();
+        let table = table.clone();
         tokio::spawn(async move {
             let mut weeb = match handle_connection(stream).await {
                 Some(wp) => wp,
@@ -80,7 +93,7 @@ async fn main() {
             };
             println!("[{}] Connected", peer);
 
-            loop {
+            'outer: loop {
                 let (ai_type, human_type) = {
                     let mut rng = rand::thread_rng();
                     loop {
@@ -103,10 +116,25 @@ async fn main() {
 
                 let mut nash_ai = bayesian::NashAi::new(strategy.clone(), ai_type);
 
+                weeb.cheat = Some(CheatState {
+                    table: table.clone(),
+                    strategy: strategy.clone(),
+                    human_type,
+                    human_obj,
+                });
+
                 weeb.send_info(format!("OBJ:{}", format_objective(&human_obj)))
                     .await;
 
-                let outcome = host_game(&mut weeb, &mut nash_ai, START).await;
+                let outcome =
+                    std::panic::AssertUnwindSafe(host_game(&mut weeb, &mut nash_ai, START));
+                let outcome = match futures_util::FutureExt::catch_unwind(outcome).await {
+                    Ok(o) => o,
+                    Err(_) => {
+                        println!("[{}] Disconnected", peer);
+                        break 'outer;
+                    }
+                };
 
                 weeb.send_info(format!(
                     "END:{}|{}|{}|{}|{}",

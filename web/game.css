@@ -152,6 +152,44 @@ svg {
 	fill: #1a4a7a;
 }
 
+/* Cheat mode: square colors based on AI eval */
+
+.space[data-cheat="W"] {
+	fill: #1a4a2a;
+}
+
+.spot:hover .space[data-cheat="W"] {
+	fill: #257a3a;
+}
+
+.space[data-cheat="D"] {
+	fill: #4a4a1a;
+}
+
+.spot:hover .space[data-cheat="D"] {
+	fill: #6a6a2a;
+}
+
+.space[data-cheat="L"] {
+	fill: #4a1a1a;
+}
+
+.spot:hover .space[data-cheat="L"] {
+	fill: #7a2a2a;
+}
+
+/* Cheat mode: Nash probability text */
+
+.cheat-pct {
+	font-size: 0.22px;
+	fill: rgba(255, 255, 255, 0.85);
+	text-anchor: middle;
+	dominant-baseline: central;
+	pointer-events: none;
+	font-family: 'Courier New', monospace;
+	font-weight: bold;
+}
+
 /* Scoreboard */
 
 #scoreboard {

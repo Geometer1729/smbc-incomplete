@@ -1,6 +1,10 @@
+use crate::ai::pref;
 use crate::api::API;
+use crate::bayesian::{self, StrategyMap};
 use crate::moves::other;
-use crate::types::{InMsg::*, OutMsg::*, Square::*, *};
+use crate::types::{InMsg::*, OutMsg::*, Pref, Square::*, *};
+
+use std::sync::Arc;
 
 use futures_util::stream::SplitSink;
 use futures_util::stream::SplitStream;
@@ -94,8 +98,13 @@ mod livereload {
         fetch('/__livereload?gen=' + gen)
             .then(r => r.text())
             .then(t => {{
-                gen = parseInt(t) || gen + 1;
-                location.reload();
+                let newGen = parseInt(t) || gen + 1;
+                if(newGen !== gen) {{
+                    gen = newGen;
+                    location.reload();
+                }} else {{
+                    poll();
+                }}
             }})
             .catch(() => setTimeout(poll, 1000));
     }}
@@ -120,13 +129,12 @@ mod livereload {
             })
             .unwrap_or(0);
 
-        // Wait up to 30s for generation to change
-        let deadline = tokio::time::Instant::now() + Duration::from_secs(30);
-        let mut interval = tokio::time::interval(Duration::from_millis(100));
+        // Wait until generation actually changes
+        let mut interval = tokio::time::interval(Duration::from_millis(500));
         loop {
             interval.tick().await;
             let current = current_generation();
-            if current != client_gen || tokio::time::Instant::now() >= deadline {
+            if current != client_gen {
                 let body = current.to_string();
                 let header = format!(
                     "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
@@ -140,9 +148,17 @@ mod livereload {
     }
 }
 
+pub struct CheatState {
+    pub table: Table,
+    pub strategy: Arc<StrategyMap>,
+    pub human_type: bayesian::TypeId,
+    pub human_obj: Objective,
+}
+
 pub struct WebPlayer {
     in_handle: Receiver<InMsg>,
     out_handle: Sender<OutMsg>,
+    pub cheat: Option<CheatState>,
 }
 
 /// Bind the WebSocket listener. Returns the TcpListener for use in an accept loop.
@@ -243,6 +259,7 @@ async fn mk_web_player_from_stream(stream: TcpStream) -> Option<WebPlayer> {
     Some(WebPlayer {
         in_handle: api_rec,
         out_handle: api_send,
+        cheat: None,
     })
 }
 
@@ -309,6 +326,67 @@ impl WebPlayer {
 impl API for WebPlayer {
     async fn rend(&mut self, p: Pos) {
         let _ = self.out_handle.send(Upd(p)).await;
+        if let Some(cheat) = &self.cheat {
+            // Skip cheat data for terminal positions (game already decided)
+            if crate::eval::eval_pos(p).is_some() {
+                return;
+            }
+            // Show Nash probabilities on human's turn (X)
+            let nash_probs: [f64; 9] = if p.turn == crate::types::Player::X {
+                cheat
+                    .strategy
+                    .get(&p)
+                    .map(|s| s[cheat.human_type])
+                    .unwrap_or([0.0; 9])
+            } else {
+                [0.0; 9]
+            };
+
+            let mut parts: Vec<String> = Vec::with_capacity(9);
+            for i in 0..9 {
+                if p.board[i] != Open {
+                    parts.push("-,-".to_string());
+                } else {
+                    // Make the move and evaluate the child position
+                    let mut board2 = p.board;
+                    board2[i] = Taken { by: p.turn };
+                    let child = Pos {
+                        turn: other(p.turn),
+                        board: board2,
+                    };
+                    // Use eval_pos first for terminal children, otherwise table lookup
+                    let maybe_eval = match crate::eval::eval_pos(child) {
+                        Some(crate::types::Outcome::Win {
+                            with: crate::types::Player::X,
+                        }) => Some(crate::eval::X_WON),
+                        Some(crate::types::Outcome::Draw) => Some(crate::eval::DRAW),
+                        Some(crate::types::Outcome::Win {
+                            with: crate::types::Player::O,
+                        }) => Some(crate::eval::O_WON),
+                        None => {
+                            use crate::table::cannon_lookup_safe;
+                            cannon_lookup_safe(&cheat.table, child)
+                        }
+                    };
+                    match maybe_eval {
+                        Some(eval) => {
+                            let p_char = match pref(cheat.human_obj, eval) {
+                                Pref::Winable => 'W',
+                                Pref::Drawable => 'D',
+                                Pref::Lost => 'L',
+                            };
+                            parts.push(format!("{},{:.4}", p_char, nash_probs[i]));
+                        }
+                        None => {
+                            eprintln!("Cheat: missing table entry for child at square {}", i);
+                            parts.push("-,-".to_string());
+                        }
+                    }
+                }
+            }
+            let msg = format!("CHEAT:{}", parts.join("|"));
+            let _ = self.out_handle.send(Info(msg)).await;
+        }
     }
 
     async fn ask(&mut self, p: Pos) -> Pos {
