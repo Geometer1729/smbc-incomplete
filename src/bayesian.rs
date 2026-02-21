@@ -7,9 +7,11 @@ use crate::types::Square::*;
 use crate::types::*;
 
 use std::collections::{HashMap, VecDeque};
+use std::path::Path;
 use std::sync::Arc;
 
 use rand::Rng;
+use serde::{Deserialize, Serialize};
 
 // ---------------------------------------------------------------------------
 // Foundation types
@@ -409,6 +411,57 @@ pub fn solve_cfr(dag: &GameDag, prior: &[f64; NUM_TYPES], iterations: usize) -> 
     }
 
     avg_strategy
+}
+
+// ---------------------------------------------------------------------------
+// Strategy Cache
+// ---------------------------------------------------------------------------
+
+const CACHE_PATH: &str = "strategy_cache.bin";
+
+#[derive(Serialize, Deserialize)]
+struct CachedStrategy {
+    iterations: usize,
+    prior: [f64; NUM_TYPES],
+    strategy: StrategyMap,
+}
+
+/// Load a cached strategy from disk, returning it only if iterations and prior match.
+pub fn load_cached_strategy(
+    prior: &[f64; NUM_TYPES],
+    iterations: usize,
+) -> Option<StrategyMap> {
+    let path = Path::new(CACHE_PATH);
+    let data = std::fs::read(path).ok()?;
+    let cached: CachedStrategy = bincode::deserialize(&data).ok()?;
+    if cached.iterations == iterations && cached.prior == *prior {
+        Some(cached.strategy)
+    } else {
+        None
+    }
+}
+
+/// Save a strategy to disk for future reuse.
+pub fn save_cached_strategy(
+    strategy: &StrategyMap,
+    prior: &[f64; NUM_TYPES],
+    iterations: usize,
+) {
+    let cached = CachedStrategy {
+        iterations,
+        prior: *prior,
+        strategy: strategy.clone(),
+    };
+    match bincode::serialize(&cached) {
+        Ok(data) => {
+            if let Err(e) = std::fs::write(CACHE_PATH, data) {
+                eprintln!("Warning: failed to write strategy cache: {}", e);
+            }
+        }
+        Err(e) => {
+            eprintln!("Warning: failed to serialize strategy cache: {}", e);
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------

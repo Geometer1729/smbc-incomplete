@@ -39,16 +39,29 @@ async fn main() {
     let _table = gen_table();
 
     // Build DAG and solve Nash equilibrium via CFR
-    println!("Building game DAG...");
-    let dag = bayesian::build_dag();
-    println!("DAG built: {} reachable positions", dag.num_positions());
-
     let prior = [1.0 / 6.0; bayesian::NUM_TYPES];
     let iterations = 5000;
-    println!("Running CFR for {} iterations...", iterations);
-    let start = std::time::Instant::now();
-    let strategy = Arc::new(bayesian::solve_cfr(&dag, &prior, iterations));
-    println!("CFR complete in {:.2}s.", start.elapsed().as_secs_f64());
+
+    let strategy = if let Some(cached) = bayesian::load_cached_strategy(&prior, iterations) {
+        println!("Loaded cached strategy from disk.");
+        Arc::new(cached)
+    } else {
+        println!("Building game DAG...");
+        let dag = bayesian::build_dag();
+        println!("DAG built: {} reachable positions", dag.num_positions());
+
+        println!("Running CFR for {} iterations...", iterations);
+        let start = std::time::Instant::now();
+        let strategy = bayesian::solve_cfr(&dag, &prior, iterations);
+        println!("CFR complete in {:.2}s.", start.elapsed().as_secs_f64());
+
+        bayesian::save_cached_strategy(&strategy, &prior, iterations);
+        println!("Strategy cached to disk.");
+        Arc::new(strategy)
+    };
+
+    println!("Building game DAG for payoff analysis...");
+    let dag = bayesian::build_dag();
 
     let payoffs = bayesian::expected_payoffs(&strategy, &dag);
     bayesian::print_payoff_matrix(&payoffs);

@@ -30,9 +30,10 @@ Open `web/game.html` in a browser after `cargo run` to play via the web UI.
 - `ask(Pos)` — request a move from the player (returns new `Pos`)
 - `close(Outcome)` — notify player the game ended
 
-Three `API` implementations exist:
+Four `API` implementations exist:
 - `Cnsl` — console player (stdin/stdout) in `api.rs`
 - `SimpleAi` — AI player in `ai.rs`, selects moves based on a ranked `Objective` (preference ordering over outcomes)
+- `NashAi` — Nash equilibrium AI player in `bayesian.rs`, samples moves from a pre-computed mixed strategy profile
 - `WebPlayer` — browser player via WebSocket in `web.rs`
 
 ### Evaluation Table (`table.rs`, `eval.rs`, `cannon.rs`)
@@ -56,6 +57,17 @@ On startup, `gen_table()` pre-computes evaluations for all reachable board posit
 - `Eval = [[bool; 3]; 2]` — position evaluation matrix
 - `Objective = [Outcome; 3]` — ranked preference ordering for AI
 - `Pref { Lost, Drawable, Winable }` — evaluation of a position from a player's perspective
+
+### Nash Equilibrium Engine (`bayesian.rs`)
+
+Computes a Bayesian Nash equilibrium via Counterfactual Regret Minimization (CFR). Players have hidden types (6 possible preference orderings over outcomes), and the solver finds mixed strategies that form an equilibrium under a uniform prior.
+
+- `build_dag()` — constructs a DAG of all 5478 reachable positions via BFS
+- `solve_cfr()` — runs CFR for N iterations (default 5000) to compute `StrategyMap`
+- `StrategyMap = HashMap<Pos, [[f64; 9]; 6]>` — maps positions to per-type action probabilities
+- `NashAi` — AI player that samples moves from the equilibrium strategy
+
+**Strategy caching**: The computed strategy is serialized to `strategy_cache.bin` via bincode/serde on first run. Subsequent launches load the cache instantly (~2MB file) instead of re-running CFR (~15s). The cache is invalidated automatically if the iteration count or type prior changes. Delete `strategy_cache.bin` to force recomputation.
 
 ### Frontend (`web/`)
 
