@@ -55,7 +55,7 @@ where
     }
 }
 
-pub async fn host_game(x: &mut impl API, o: &mut impl API, p: Pos) {
+pub async fn host_game(x: &mut impl API, o: &mut impl API, p: Pos) -> Outcome {
     x.rend(p).await;
     o.rend(p).await;
     let new_pos = match p.turn {
@@ -71,6 +71,7 @@ pub async fn host_game(x: &mut impl API, o: &mut impl API, p: Pos) {
             o.rend(new_pos).await;
             x.close(outcome).await;
             o.close(outcome).await;
+            outcome
         }
         None => Box::pin(host_game(x, o, new_pos)).await,
     }

@@ -116,17 +116,6 @@ class Board extends EventTarget {
 	}
 }
 
-class Console {
-	constructor(elem) {
-		this.elem = elem;
-	}
-
-	log(msg) {
-		const tc = document.createTextNode(msg + "\n");
-		this.elem.appendChild(tc);
-	}
-}
-
 class Pos {
 	constructor(turn, state, width, height) {
 		[this.turn, this.state, this.width, this.height] = [turn, state, width, height];
@@ -147,7 +136,9 @@ class Pos {
 	}
 }
 
-let board, con, ws;
+let board, ws, gameOver = false;
+const score = { best: 0, middle: 0, worst: 0, games: 0 };
+const aiScore = { best: 0, middle: 0, worst: 0 };
 
 const sendByte = bt => {
 	const da = new Uint8Array(1);
@@ -155,27 +146,97 @@ const sendByte = bt => {
 	ws.send(da);
 };
 
+const updateScoreboard = () => {
+	const el = document.getElementById("scoreboard");
+	el.innerHTML =
+		`<div class="score-row"><span class="score-label">You:</span>` +
+		`<span class="score-item best">Best: ${score.best}</span>` +
+		`<span class="score-item middle">Middle: ${score.middle}</span>` +
+		`<span class="score-item worst">Worst: ${score.worst}</span></div>` +
+		`<div class="score-row"><span class="score-label">AI:</span>` +
+		`<span class="score-item best">Best: ${aiScore.best}</span>` +
+		`<span class="score-item middle">Middle: ${aiScore.middle}</span>` +
+		`<span class="score-item worst">Worst: ${aiScore.worst}</span></div>` +
+		`<div class="score-row"><span class="score-games">Games: ${score.games}</span></div>`;
+};
+
 const init = () => {
-	con = new Console(document.querySelector("#msgs"));
 	board = new Board(3, 3);
 	document.body.insertBefore(board.svg, document.body.firstChild);
 
 	ws = new WebSocket("ws://localhost:8080/");
-	ws.addEventListener("open", ev => con.log("Connection opened"));
-	ws.addEventListener("close", ev => con.log(`Connection closed, code ${ev.code}, reason ${ev.reason}`));
+	ws.addEventListener("close", ev => {
+		const el = document.getElementById("objective");
+		if(el) el.textContent = "Connection lost. Restart the server and refresh.";
+	});
 	ws.addEventListener("message", ev => {
-		con.log(`Data: ${ev.data}`);
-		try {
-			const pos = Pos.fromString(ev.data);
-			board.render(pos);
-		} catch(e) {
-			con.log('(Unexpected format)');
-			throw e;
+		const data = ev.data;
+		if(data.startsWith("OBJ:")) {
+			const obj = data.substring(4);
+			gameOver = false;
+			// Clear previous results
+			const results = document.getElementById("results");
+			if(results) results.remove();
+			// Reset board to empty
+			for(let y = 0; y < board.height; y++) {
+				for(let x = 0; x < board.width; x++) {
+					board.set(x, y, "empty");
+				}
+			}
+			// Set objective
+			const div = document.getElementById("objective");
+			if(div) {
+				div.textContent = "Your objective (X): " + obj;
+			} else {
+				const el = document.createElement("div");
+				el.id = "objective";
+				el.textContent = "Your objective (X): " + obj;
+				document.body.insertBefore(el, document.body.firstChild);
+			}
+			return;
 		}
+		if(data.startsWith("END:")) {
+			const parts = data.substring(4).split("|");
+			const [outcome, yourObj, yourScore, aiObj, aiScoreLabel] = parts;
+			// Update running score
+			score.games++;
+			score[yourScore.toLowerCase()]++;
+			aiScore[aiScoreLabel.toLowerCase()]++;
+			updateScoreboard();
+			// Show results
+			let existing = document.getElementById("results");
+			if(!existing) {
+				existing = document.createElement("div");
+				existing.id = "results";
+				document.body.insertBefore(existing, board.svg.nextSibling);
+			}
+			gameOver = true;
+			existing.innerHTML =
+				`<div class="result-outcome">Result: ${outcome}</div>` +
+				`<div class="result-row you">` +
+					`<span class="result-label">You (X):</span> ` +
+					`<span class="result-obj">${yourObj}</span> ` +
+					`<span class="result-score ${yourScore.toLowerCase()}">${yourScore} outcome!</span>` +
+				`</div>` +
+				`<div class="result-row ai">` +
+					`<span class="result-label">AI (O):</span> ` +
+					`<span class="result-obj">${aiObj}</span> ` +
+					`<span class="result-score ${aiScoreLabel.toLowerCase()}">${aiScoreLabel} outcome!</span>` +
+				`</div>` +
+				`<button id="restart-btn">Play Again</button>`;
+			document.getElementById("restart-btn").addEventListener("click", () => {
+				sendByte(9);
+			});
+			return;
+		}
+		try {
+			const pos = Pos.fromString(data);
+			board.render(pos);
+		} catch(e) {}
 	});
 
 	board.addEventListener("click", ev => {
-		sendByte(board.toIndex(ev.x, ev.y));
+		if(!gameOver) sendByte(board.toIndex(ev.x, ev.y));
 	});
 };
 

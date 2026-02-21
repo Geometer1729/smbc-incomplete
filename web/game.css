@@ -17,7 +17,117 @@
 	fill: #ca8;
 }
 
-#msgs {
+#scoreboard {
 	font-family: monospace;
-	white-space: pre-wrap;
+	font-size: 1.1em;
+	padding: 0.4em 0.5em;
+	margin-bottom: 0.5em;
+	background: #efe;
+	border: 2px solid #8a8;
+}
+
+.score-row {
+	display: flex;
+	gap: 1.2em;
+	margin: 0.15em 0;
+}
+
+.score-label {
+	font-weight: bold;
+	min-width: 2.5em;
+}
+
+.score-games {
+	font-weight: bold;
+}
+
+.score-item {
+	font-weight: bold;
+	padding: 0.1em 0.4em;
+	border-radius: 3px;
+}
+
+.score-item.best {
+	background: #6d6;
+	color: #030;
+}
+
+.score-item.middle {
+	background: #dd6;
+	color: #330;
+}
+
+.score-item.worst {
+	background: #d66;
+	color: #300;
+}
+
+#objective {
+	font-family: monospace;
+	font-size: 1.2em;
+	font-weight: bold;
+	padding: 0.5em;
+	margin-bottom: 0.5em;
+	background: #ffe;
+	border: 2px solid #ca8;
+}
+
+#results {
+	font-family: monospace;
+	padding: 0.5em;
+	margin: 0.5em 0;
+	background: #eef;
+	border: 2px solid #88a;
+}
+
+.result-outcome {
+	font-size: 1.3em;
+	font-weight: bold;
+	margin-bottom: 0.4em;
+}
+
+.result-row {
+	margin: 0.3em 0;
+}
+
+.result-label {
+	font-weight: bold;
+}
+
+.result-score {
+	font-weight: bold;
+	padding: 0.1em 0.4em;
+	border-radius: 3px;
+}
+
+.result-score.best {
+	background: #6d6;
+	color: #030;
+}
+
+.result-score.middle {
+	background: #dd6;
+	color: #330;
+}
+
+.result-score.worst {
+	background: #d66;
+	color: #300;
+}
+
+#restart-btn {
+	display: block;
+	margin-top: 0.6em;
+	padding: 0.4em 1.2em;
+	font-family: monospace;
+	font-size: 1.1em;
+	font-weight: bold;
+	cursor: pointer;
+	background: #ca8;
+	border: 2px solid #985;
+	border-radius: 4px;
+}
+
+#restart-btn:hover {
+	background: #db9;
 }

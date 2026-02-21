@@ -47,6 +47,7 @@ pub type Table = Arc<dashmap::DashMap<Pos, Eval>>;
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub enum OutMsg {
     Upd(Pos),
+    Info(String),
     ReqPong(Vec<u8>),
 }
 

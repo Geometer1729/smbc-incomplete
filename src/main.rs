@@ -1,12 +1,42 @@
 use smbc_incomplete::bayesian;
-use smbc_incomplete::Outcome::*;
-use smbc_incomplete::Player::*;
 use smbc_incomplete::*;
 
-use tokio::runtime::Runtime;
+use rand::Rng;
+use std::sync::Arc;
 
-fn main() {
-    let table = gen_table();
+fn format_objective(obj: &Objective) -> String {
+    let names: Vec<&str> = obj
+        .iter()
+        .map(|o| match o {
+            Outcome::Win { with: Player::X } => "X wins",
+            Outcome::Draw => "Draw",
+            Outcome::Win { with: Player::O } => "O wins",
+        })
+        .collect();
+    format!("{} > {} > {}", names[0], names[1], names[2])
+}
+
+fn format_outcome(o: Outcome) -> &'static str {
+    match o {
+        Outcome::Win { with: Player::X } => "X wins",
+        Outcome::Draw => "Draw",
+        Outcome::Win { with: Player::O } => "O wins",
+    }
+}
+
+fn score_label(obj: &Objective, outcome: Outcome) -> &'static str {
+    if outcome == obj[0] {
+        "Best"
+    } else if outcome == obj[1] {
+        "Middle"
+    } else {
+        "Worst"
+    }
+}
+
+#[tokio::main]
+async fn main() {
+    let _table = gen_table();
 
     // Build DAG and solve Nash equilibrium via CFR
     println!("Building game DAG...");
@@ -17,24 +47,72 @@ fn main() {
     let iterations = 5000;
     println!("Running CFR for {} iterations...", iterations);
     let start = std::time::Instant::now();
-    let strategy = bayesian::solve_cfr(&dag, &prior, iterations);
+    let strategy = Arc::new(bayesian::solve_cfr(&dag, &prior, iterations));
     println!("CFR complete in {:.2}s.", start.elapsed().as_secs_f64());
 
-    // Print analysis
     let payoffs = bayesian::expected_payoffs(&strategy, &dag);
     bayesian::print_payoff_matrix(&payoffs);
-    bayesian::print_interesting_positions(&strategy, &dag);
 
-    let runtime = Runtime::new().expect("hurr I can fail?");
-    let _rt_ent = runtime.enter();
-    let mut cnsl = Cnsl(&table);
-    let mut _ai = SimpleAi {
-        table: &table,
-        obj: [Win { with: O }, Win { with: X }, Draw],
-    };
-    let mut _nash_ai = bayesian::NashAi::new(strategy, 0);
-    runtime.block_on(async {
-        let mut weeb = mk_web_player().await;
-        host_game(&mut cnsl, &mut weeb, START).await;
-    });
+    let addr = "127.0.0.1:8080";
+    let listener = bind_listener(addr).await;
+    println!("Listening on ws://{} — connect from browser", addr);
+
+    loop {
+        let (stream, peer) = listener.accept().await.expect("Failed to accept");
+        let strategy = strategy.clone();
+        tokio::spawn(async move {
+            let mut weeb = match mk_web_player_from_stream(stream).await {
+                Some(wp) => wp,
+                None => return,
+            };
+            println!("[{}] Connected", peer);
+
+            loop {
+                let (ai_type, human_type) = {
+                    let mut rng = rand::thread_rng();
+                    (
+                        rng.gen_range(0..bayesian::NUM_TYPES),
+                        rng.gen_range(0..bayesian::NUM_TYPES),
+                    )
+                };
+                let human_obj = bayesian::ALL_OBJECTIVES[human_type];
+                let ai_obj = bayesian::ALL_OBJECTIVES[ai_type];
+
+                println!(
+                    "[{}] New game: Human ({}) vs AI ({})",
+                    peer,
+                    format_objective(&human_obj),
+                    format_objective(&ai_obj)
+                );
+
+                let mut nash_ai = bayesian::NashAi::new(strategy.clone(), ai_type);
+
+                weeb.send_info(format!("OBJ:{}", format_objective(&human_obj)))
+                    .await;
+
+                let outcome = host_game(&mut weeb, &mut nash_ai, START).await;
+
+                weeb.send_info(format!(
+                    "END:{}|{}|{}|{}|{}",
+                    format_outcome(outcome),
+                    format_objective(&human_obj),
+                    score_label(&human_obj, outcome),
+                    format_objective(&ai_obj),
+                    score_label(&ai_obj, outcome),
+                ))
+                .await;
+
+                println!(
+                    "[{}] Result: {} — Human: {}, AI: {}",
+                    peer,
+                    format_outcome(outcome),
+                    score_label(&human_obj, outcome),
+                    score_label(&ai_obj, outcome)
+                );
+
+                weeb.wait_for_reset().await;
+                println!("[{}] Restarting...", peer);
+            }
+        });
+    }
 }

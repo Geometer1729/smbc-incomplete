@@ -7,6 +7,7 @@ use crate::types::Square::*;
 use crate::types::*;
 
 use std::collections::{HashMap, VecDeque};
+use std::sync::Arc;
 
 use rand::Rng;
 
@@ -530,12 +531,12 @@ pub fn print_interesting_positions(strategy: &StrategyMap, dag: &GameDag) {
 // ---------------------------------------------------------------------------
 
 pub struct NashAi {
-    strategy: StrategyMap,
+    strategy: Arc<StrategyMap>,
     my_type: TypeId,
 }
 
 impl NashAi {
-    pub fn new(strategy: StrategyMap, my_type: TypeId) -> Self {
+    pub fn new(strategy: Arc<StrategyMap>, my_type: TypeId) -> Self {
         NashAi { strategy, my_type }
     }
 }
