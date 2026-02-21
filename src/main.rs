@@ -83,10 +83,13 @@ async fn main() {
             loop {
                 let (ai_type, human_type) = {
                     let mut rng = rand::thread_rng();
-                    (
-                        rng.gen_range(0..bayesian::NUM_TYPES),
-                        rng.gen_range(0..bayesian::NUM_TYPES),
-                    )
+                    loop {
+                        let ai = rng.gen_range(0..bayesian::NUM_TYPES);
+                        let human = rng.gen_range(0..bayesian::NUM_TYPES);
+                        if bayesian::ALL_OBJECTIVES[ai][0] != bayesian::ALL_OBJECTIVES[human][0] {
+                            break (ai, human);
+                        }
+                    }
                 };
                 let human_obj = bayesian::ALL_OBJECTIVES[human_type];
                 let ai_obj = bayesian::ALL_OBJECTIVES[ai_type];
