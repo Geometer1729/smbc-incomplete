@@ -83,7 +83,7 @@ impl CharGrid {
         let height = strs.len();
         let width = strs.iter().map(|c| c.len()).max().unwrap_or(0);
         for ln in &mut strs {
-            ln.extend(repeat(' ').take(width - ln.len()));
+            ln.extend(std::iter::repeat_n(' ', width - ln.len()));
         }
         CharGrid {
             height,
@@ -99,13 +99,13 @@ impl CharGrid {
             .strs
             .iter()
             .cloned()
-            .chain(repeat(repeat(' ').take(l.width).collect()))
+            .chain(repeat(" ".repeat(l.width)))
             .take(height);
         let rstrs = r
             .strs
             .iter()
             .cloned()
-            .chain(repeat(repeat(' ').take(r.width).collect()))
+            .chain(repeat(" ".repeat(r.width)))
             .take(height);
         let strs = zip(lstrs, rstrs).map(|(a, b)| a + &b).collect();
         CharGrid {

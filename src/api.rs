@@ -23,7 +23,7 @@ impl API for Cnsl<'_> {
     async fn rend(&mut self, pos: Pos) {
         let table = &self.0;
         println!("{}", pos);
-        println!("{}", EvalShowable(cannon_lookup(&table, pos)));
+        println!("{}", EvalShowable(cannon_lookup(table, pos)));
     }
     async fn ask(&mut self, pos: Pos) -> Pos {
         let table = &self.0;
@@ -31,7 +31,7 @@ impl API for Cnsl<'_> {
         let mut display_moves: Vec<String> = Vec::new();
 
         for (i, m) in ms.iter().enumerate() {
-            let eval = cannon_lookup(&table, *m);
+            let eval = cannon_lookup(table, *m);
             display_moves.push(format!("{}:\n{}\n{}", i, m, EvalShowable(eval)));
         }
         println!("{}", join_gridy(display_moves));
@@ -62,7 +62,7 @@ pub async fn host_game(x: &mut impl API, o: &mut impl API, p: Pos) -> Outcome {
         X => x.ask(p).await,
         O => o.ask(p).await,
     };
-    if !moves(p).iter().any(|&m| m == new_pos) {
+    if !moves(p).contains(&new_pos) {
         panic!("illegal move encountered");
     }
     match eval_pos(new_pos) {

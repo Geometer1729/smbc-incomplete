@@ -14,7 +14,7 @@ pub fn gen_table() -> Table {
 }
 
 pub fn cannon_lookup(table: &Table, pos: Pos) -> Eval {
-    let mut cannon_pos = pos.clone();
+    let mut cannon_pos = pos;
     cannon(&mut cannon_pos);
     *table.get(&cannon_pos).unwrap()
 }

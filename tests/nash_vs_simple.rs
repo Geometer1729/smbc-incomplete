@@ -14,19 +14,16 @@ fn simple_move(table: &Table, obj: Objective, pos: Pos) -> Pos {
 fn nash_move(strategy: &StrategyMap, type_id: TypeId, pos: Pos, rng: &mut impl Rng) -> Pos {
     use smbc_incomplete::Square::*;
 
-    let sigma = strategy
-        .get(&pos)
-        .map(|s| s[type_id])
-        .unwrap_or_else(|| {
-            let n = pos.board.iter().filter(|&&s| s == Open).count() as f64;
-            let mut s = [0.0; 9];
-            for (i, &sq) in pos.board.iter().enumerate() {
-                if sq == Open {
-                    s[i] = 1.0 / n;
-                }
+    let sigma = strategy.get(&pos).map(|s| s[type_id]).unwrap_or_else(|| {
+        let n = pos.board.iter().filter(|&&s| s == Open).count() as f64;
+        let mut s = [0.0; 9];
+        for (i, &sq) in pos.board.iter().enumerate() {
+            if sq == Open {
+                s[i] = 1.0 / n;
             }
-            s
-        });
+        }
+        s
+    });
 
     let roll: f64 = rng.gen();
     let mut cumulative = 0.0;
@@ -57,7 +54,11 @@ fn play_nash_vs_nash(
 ) -> Outcome {
     let mut pos = START;
     loop {
-        let type_id = if pos.turn == Player::X { x_type } else { o_type };
+        let type_id = if pos.turn == Player::X {
+            x_type
+        } else {
+            o_type
+        };
         let new_pos = nash_move(strategy, type_id, pos, rng);
         if let Some(outcome) = eval_pos(new_pos) {
             return outcome;
@@ -117,7 +118,9 @@ fn nash_beats_simple_decisively() {
         // Alternate who plays X
         let nash_is_x: bool = rng.gen();
 
-        let outcome = play_game(&table, &strategy, nash_type, simple_obj, nash_is_x, &mut rng);
+        let outcome = play_game(
+            &table, &strategy, nash_type, simple_obj, nash_is_x, &mut rng,
+        );
 
         let nash_obj = &ALL_OBJECTIVES[nash_type];
         let nash_u = outcome_utility(nash_obj, outcome);
@@ -211,8 +214,14 @@ fn empirical_payoffs_match_theoretical_matrix() {
     }
 
     // Print comparison table
-    eprintln!("\n=== Payoff Matrix: Theoretical vs Empirical ({} games/pair) ===", games_per_pair);
-    eprintln!("{:<12} {:>22}  {:>22}  {:>8}", "Pair", "Theoretical (X, O)", "Empirical (X, O)", "Max Err");
+    eprintln!(
+        "\n=== Payoff Matrix: Theoretical vs Empirical ({} games/pair) ===",
+        games_per_pair
+    );
+    eprintln!(
+        "{:<12} {:>22}  {:>22}  {:>8}",
+        "Pair", "Theoretical (X, O)", "Empirical (X, O)", "Max Err"
+    );
     eprintln!("{}", "-".repeat(70));
 
     let mut max_error = 0.0f64;
@@ -256,12 +265,18 @@ fn empirical_payoffs_match_theoretical_matrix() {
             assert!(
                 (theo_x - emp_x).abs() < tolerance,
                 "X utility mismatch for pair ({}, {}): theoretical {:.4}, empirical {:.4}",
-                tx, to, theo_x, emp_x
+                tx,
+                to,
+                theo_x,
+                emp_x
             );
             assert!(
                 (theo_o - emp_o).abs() < tolerance,
                 "O utility mismatch for pair ({}, {}): theoretical {:.4}, empirical {:.4}",
-                tx, to, theo_o, emp_o
+                tx,
+                to,
+                theo_o,
+                emp_o
             );
         }
     }

@@ -2,3 +2,4 @@
 result
 .direnv
 strategy_cache.bin
+.pre-commit-config.yaml

@@ -7,7 +7,7 @@ pub fn moves(p: Pos) -> Vec<Pos> {
     for i in 0..9 {
         if p.board[i] == Open {
             let Pos { turn, board } = p;
-            let mut board2 = board.clone();
+            let mut board2 = board;
             board2[i] = Taken { by: turn };
             let new_position = Pos {
                 turn: other(turn),

@@ -427,10 +427,7 @@ struct CachedStrategy {
 }
 
 /// Load a cached strategy from disk, returning it only if iterations and prior match.
-pub fn load_cached_strategy(
-    prior: &[f64; NUM_TYPES],
-    iterations: usize,
-) -> Option<StrategyMap> {
+pub fn load_cached_strategy(prior: &[f64; NUM_TYPES], iterations: usize) -> Option<StrategyMap> {
     let path = Path::new(CACHE_PATH);
     let data = std::fs::read(path).ok()?;
     let cached: CachedStrategy = bincode::deserialize(&data).ok()?;
@@ -442,11 +439,7 @@ pub fn load_cached_strategy(
 }
 
 /// Save a strategy to disk for future reuse.
-pub fn save_cached_strategy(
-    strategy: &StrategyMap,
-    prior: &[f64; NUM_TYPES],
-    iterations: usize,
-) {
+pub fn save_cached_strategy(strategy: &StrategyMap, prior: &[f64; NUM_TYPES], iterations: usize) {
     let cached = CachedStrategy {
         iterations,
         prior: *prior,

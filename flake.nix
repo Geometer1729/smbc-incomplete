@@ -6,9 +6,13 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     crane.url = "github:ipetkov/crane";
+    git-hooks = {
+      url = "github:cachix/git-hooks.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, rust-overlay, crane }:
+  outputs = { self, nixpkgs, rust-overlay, crane, git-hooks }:
     let
       systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
       forAllSystems = nixpkgs.lib.genAttrs systems;
@@ -41,6 +45,33 @@
           });
         });
 
+      checks = forAllSystems (system:
+        let
+          pkgs = import nixpkgs {
+            inherit system;
+            overlays = [ rust-overlay.overlays.default ];
+          };
+          rustToolchain = pkgs.rust-bin.stable.latest.default.override {
+            extensions = [ "rustfmt" "clippy" ];
+          };
+        in
+        {
+          pre-commit-check = git-hooks.lib.${system}.run {
+            src = ./.;
+            hooks = {
+              rustfmt = {
+                enable = true;
+                packageOverrides = { cargo = rustToolchain; rustfmt = rustToolchain; };
+              };
+              clippy = {
+                enable = true;
+                packageOverrides = { cargo = rustToolchain; clippy = rustToolchain; };
+                settings.denyWarnings = true;
+              };
+            };
+          };
+        });
+
       devShells = forAllSystems (system:
         let
           pkgs = import nixpkgs {
@@ -53,6 +84,7 @@
         in
         {
           default = pkgs.mkShell {
+            inherit (self.checks.${system}.pre-commit-check) shellHook enabledPackages;
             buildInputs = [
               rustToolchain
               pkgs.cargo-watch
