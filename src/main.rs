@@ -55,13 +55,13 @@ async fn main() {
 
     let addr = "127.0.0.1:8080";
     let listener = bind_listener(addr).await;
-    println!("Listening on ws://{} — connect from browser", addr);
+    println!("Listening on http://{}", addr);
 
     loop {
         let (stream, peer) = listener.accept().await.expect("Failed to accept");
         let strategy = strategy.clone();
         tokio::spawn(async move {
-            let mut weeb = match mk_web_player_from_stream(stream).await {
+            let mut weeb = match handle_connection(stream).await {
                 Some(wp) => wp,
                 None => return,
             };

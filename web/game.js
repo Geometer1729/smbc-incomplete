@@ -164,7 +164,7 @@ const init = () => {
 	board = new Board(3, 3);
 	document.body.insertBefore(board.svg, document.body.firstChild);
 
-	ws = new WebSocket("ws://localhost:8080/");
+	ws = new WebSocket(`ws://${location.host}/`);
 	ws.addEventListener("close", ev => {
 		const el = document.getElementById("objective");
 		if(el) el.textContent = "Connection lost. Restart the server and refresh.";

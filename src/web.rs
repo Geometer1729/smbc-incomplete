@@ -6,6 +6,7 @@ use futures_util::stream::SplitSink;
 use futures_util::stream::SplitStream;
 use futures_util::SinkExt;
 use futures_util::StreamExt;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{TcpListener, TcpStream};
 use tokio::spawn;
 use tokio::sync::mpsc::*;
@@ -13,6 +14,10 @@ use tokio_tungstenite::accept_async;
 use tokio_tungstenite::WebSocketStream;
 use tungstenite::protocol::Message;
 use tungstenite::protocol::Message::*;
+
+const INDEX_HTML: &str = include_str!("../web/game.html");
+const GAME_JS: &str = include_str!("../web/game.js");
+const GAME_CSS: &str = include_str!("../web/game.css");
 
 pub struct WebPlayer {
     in_handle: Receiver<InMsg>,
@@ -24,9 +29,61 @@ pub async fn bind_listener(addr: &str) -> TcpListener {
     TcpListener::bind(addr).await.expect("Failed to bind")
 }
 
+/// Handle an incoming TCP connection: serve static files for HTTP requests,
+/// or create a WebPlayer for WebSocket upgrades.
+pub async fn handle_connection(stream: TcpStream) -> Option<WebPlayer> {
+    let mut buf = [0u8; 4096];
+    let n = match stream.peek(&mut buf).await {
+        Ok(n) => n,
+        Err(_) => return None,
+    };
+    let request = match std::str::from_utf8(&buf[..n]) {
+        Ok(s) => s,
+        Err(_) => return None,
+    };
+
+    if request.to_ascii_lowercase().contains("upgrade: websocket") {
+        mk_web_player_from_stream(stream).await
+    } else {
+        serve_http(stream, request).await;
+        None
+    }
+}
+
+async fn serve_http(mut stream: TcpStream, peeked: &str) {
+    // Consume the request data from the stream
+    let mut buf = vec![0u8; 4096];
+    let _ = stream.read(&mut buf).await;
+
+    let path = peeked
+        .lines()
+        .next()
+        .and_then(|line| line.split_whitespace().nth(1))
+        .unwrap_or("/");
+
+    let (content_type, body) = match path {
+        "/" | "/index.html" | "/game.html" => ("text/html; charset=utf-8", INDEX_HTML),
+        "/game.js" => ("application/javascript; charset=utf-8", GAME_JS),
+        "/game.css" => ("text/css; charset=utf-8", GAME_CSS),
+        _ => {
+            let resp = "HTTP/1.1 404 Not Found\r\nContent-Length: 9\r\nConnection: close\r\n\r\nNot Found";
+            let _ = stream.write_all(resp.as_bytes()).await;
+            return;
+        }
+    };
+
+    let header = format!(
+        "HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+        content_type,
+        body.len()
+    );
+    let _ = stream.write_all(header.as_bytes()).await;
+    let _ = stream.write_all(body.as_bytes()).await;
+}
+
 /// Create a WebPlayer from an already-accepted TCP stream.
 /// Returns None if the stream is not a valid WebSocket upgrade.
-pub async fn mk_web_player_from_stream(stream: TcpStream) -> Option<WebPlayer> {
+async fn mk_web_player_from_stream(stream: TcpStream) -> Option<WebPlayer> {
     let ws = match accept_async(stream).await {
         Ok(ws) => ws,
         Err(e) => {
