@@ -152,81 +152,6 @@ svg {
 	fill: #1a4a7a;
 }
 
-/* Results */
-
-#results {
-	margin-top: 1rem;
-	padding: 1rem;
-	background: #16213e;
-	border: 1px solid #2a2a4a;
-	border-radius: 8px;
-	width: 100%;
-	text-align: center;
-}
-
-#results:empty {
-	display: none;
-}
-
-.result-outcome {
-	font-size: 1.2rem;
-	font-weight: bold;
-	margin-bottom: 0.6rem;
-	color: #c0bdb5;
-}
-
-.result-row {
-	font-family: 'Courier New', monospace;
-	font-size: 0.9rem;
-	margin: 0.35rem 0;
-	color: #a09da5;
-}
-
-.result-label {
-	font-weight: bold;
-	color: #c0bdb5;
-}
-
-.result-score {
-	font-weight: bold;
-	padding: 0.15em 0.5em;
-	border-radius: 3px;
-}
-
-.result-score.best {
-	background: #1a4a2a;
-	color: #5ce05c;
-}
-
-.result-score.middle {
-	background: #4a4a1a;
-	color: #e0e05c;
-}
-
-.result-score.worst {
-	background: #4a1a1a;
-	color: #e05c5c;
-}
-
-#restart-btn {
-	display: inline-block;
-	margin-top: 0.8rem;
-	padding: 0.5rem 1.8rem;
-	font-family: 'Georgia', serif;
-	font-size: 1rem;
-	cursor: pointer;
-	background: #0f3460;
-	color: #e8c170;
-	border: 1px solid #e8c170;
-	border-radius: 6px;
-	transition: background 0.15s, color 0.15s;
-}
-
-#restart-btn:hover {
-	background: #e8c170;
-	color: #1a1a2e;
-}
-
 /* Scoreboard */
 
 #scoreboard {
@@ -279,4 +204,63 @@ svg {
 .score-item.worst {
 	background: #4a1a1a;
 	color: #e05c5c;
+}
+
+.score-end {
+	display: flex;
+	gap: 0.8rem;
+	align-items: center;
+	justify-content: center;
+	margin-top: 0.4rem;
+	padding-top: 0.5rem;
+	border-top: 1px solid #2a2a4a;
+	color: #c0bdb5;
+}
+
+.result-score {
+	font-weight: bold;
+	padding: 0.1em 0.4em;
+	border-radius: 3px;
+}
+
+.result-score.best {
+	background: #1a4a2a;
+	color: #5ce05c;
+}
+
+.result-score.middle {
+	background: #4a4a1a;
+	color: #e0e05c;
+}
+
+.result-score.worst {
+	background: #4a1a1a;
+	color: #e05c5c;
+}
+
+.score-reveal {
+	text-align: center;
+	margin-top: 0.3rem;
+	color: #8a8798;
+}
+
+.ai-obj {
+	color: #e8c170;
+}
+
+#restart-btn {
+	padding: 0.25rem 0.8rem;
+	font-family: 'Courier New', monospace;
+	font-size: 0.85rem;
+	cursor: pointer;
+	background: #0f3460;
+	color: #e8c170;
+	border: 1px solid #e8c170;
+	border-radius: 4px;
+	transition: background 0.15s, color 0.15s;
+}
+
+#restart-btn:hover {
+	background: #e8c170;
+	color: #1a1a2e;
 }

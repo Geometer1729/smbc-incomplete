@@ -146,9 +146,9 @@ const sendByte = bt => {
 	ws.send(da);
 };
 
-const updateScoreboard = () => {
+const updateScoreboard = (endInfo) => {
 	const el = document.getElementById("scoreboard");
-	el.innerHTML =
+	let html =
 		`<div class="score-row"><span class="score-label">You:</span>` +
 		`<span class="score-item best">Best: ${score.best}</span>` +
 		`<span class="score-item middle">Middle: ${score.middle}</span>` +
@@ -156,8 +156,25 @@ const updateScoreboard = () => {
 		`<div class="score-row"><span class="score-label">AI:</span>` +
 		`<span class="score-item best">Best: ${aiScore.best}</span>` +
 		`<span class="score-item middle">Middle: ${aiScore.middle}</span>` +
-		`<span class="score-item worst">Worst: ${aiScore.worst}</span></div>` +
-		`<div class="score-row"><span class="score-games">Games: ${score.games}</span></div>`;
+		`<span class="score-item worst">Worst: ${aiScore.worst}</span></div>`;
+	if(endInfo) {
+		html +=
+			`<div class="score-end">` +
+			`<span>${endInfo.outcome}</span> — ` +
+			`<span>You: <span class="result-score ${endInfo.yourScore.toLowerCase()}">${endInfo.yourScore}</span></span>` +
+			`<span>AI: <span class="result-score ${endInfo.aiScore.toLowerCase()}">${endInfo.aiScore}</span></span>` +
+			`<button id="restart-btn">Play Again</button>` +
+			`</div>` +
+			`<div class="score-reveal">AI wanted: <span class="ai-obj">${endInfo.aiObj}</span></div>`;
+	} else {
+		html += `<div class="score-row"><span class="score-games">Games: ${score.games}</span></div>`;
+	}
+	el.innerHTML = html;
+	if(endInfo) {
+		document.getElementById("restart-btn").addEventListener("click", () => {
+			sendByte(9);
+		});
+	}
 };
 
 const init = () => {
@@ -173,8 +190,8 @@ const init = () => {
 		if(data.startsWith("OBJ:")) {
 			const obj = data.substring(4);
 			gameOver = false;
-			// Clear previous results
-			document.getElementById("results").innerHTML = "";
+			// Reset scoreboard (clear end-of-game line)
+			updateScoreboard();
 			// Reset board to empty
 			for(let y = 0; y < board.height; y++) {
 				for(let x = 0; x < board.width; x++) {
@@ -192,26 +209,8 @@ const init = () => {
 			score.games++;
 			score[yourScore.toLowerCase()]++;
 			aiScore[aiScoreLabel.toLowerCase()]++;
-			updateScoreboard();
-			// Show results
-			const existing = document.getElementById("results");
 			gameOver = true;
-			existing.innerHTML =
-				`<div class="result-outcome">Result: ${outcome}</div>` +
-				`<div class="result-row you">` +
-					`<span class="result-label">You (X):</span> ` +
-					`<span class="result-obj">${yourObj}</span> ` +
-					`<span class="result-score ${yourScore.toLowerCase()}">${yourScore} outcome!</span>` +
-				`</div>` +
-				`<div class="result-row ai">` +
-					`<span class="result-label">AI (O):</span> ` +
-					`<span class="result-obj">${aiObj}</span> ` +
-					`<span class="result-score ${aiScoreLabel.toLowerCase()}">${aiScoreLabel} outcome!</span>` +
-				`</div>` +
-				`<button id="restart-btn">Play Again</button>`;
-			document.getElementById("restart-btn").addEventListener("click", () => {
-				sendByte(9);
-			});
+			updateScoreboard({ outcome, yourScore, aiScore: aiScoreLabel, aiObj });
 			return;
 		}
 		try {
